@@ -1,42 +1,65 @@
 <!DOCTYPE html>
-<html class="bg-black text-white min-h-screen">
+<html lang="en" class="bg-black text-white min-h-screen">
 <head>
-    <title>RoastRank Leaderboard</title>
+    <meta charset="UTF-8">
+    <title>RoastRank — Global Leaderboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+      .glow { text-shadow: 0 0 18px rgba(255,180,0,0.8); }
+      .card {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.12);
+        backdrop-filter: blur(12px);
+      }
+    </style>
 </head>
-<body class="p-10">
-    <h1 class="text-8xl font-black text-center bg-gradient-to-r from-yellow-400 to-red-600 bg-clip-text text-transparent mb-16">
+
+<body class="px-4 py-10 md:px-10">
+    
+    <!-- TITLE -->
+    <h1 class="text-5xl sm:text-6xl md:text-7xl font-black text-center mb-12 glow
+               bg-gradient-to-r from-yellow-400 to-red-600 bg-clip-text text-transparent">
         GLOBAL ROASTRANK
     </h1>
 
-    <div class="max-w-5xl mx-auto space-y-8">
+    <!-- LEADERBOARD LIST -->
+    <div class="max-w-4xl mx-auto space-y-8 pb-20">
         {% for score, roast, time in roasts %}
-        <div class="bg-gray-900 p-10 rounded-3xl border-4
-            {% if loop.index0 == 0 %}
-                border-yellow-500 shadow-2xl shadow-yellow-500/50
-            {% elif loop.index0 < 3 %}
-                border-gray-300
-            {% else %}
-                border-gray-700
-            {% endif %}
-        ">
-            <div class="flex justify-between items-center mb-6">
-                <span class="text-6xl font-black">#{{ loop.index }}</span>
-                <span class="text-7xl font-bold text-yellow-400">{{ score }}/100</span>
+        <div class="card rounded-3xl p-6 sm:p-8">
+
+            <!-- RANK + SCORE -->
+            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-2">
+                <span class="text-4xl sm:text-5xl font-black">#{{ loop.index }}</span>
+
+                <span class="text-5xl sm:text-6xl font-black 
+                             {% if loop.index0 == 0 %}
+                                text-yellow-400
+                             {% elif loop.index0 < 3 %}
+                                text-red-400
+                             {% else %}
+                                text-gray-300
+                             {% endif %}">
+                    {{ score }}
+                </span>
             </div>
 
-            <!-- preserve line breaks from the roast text -->
-            <pre class="text-xl leading-relaxed opacity-90 whitespace-pre-wrap font-mono">
+            <!-- ROAST TEXT -->
+            <pre class="text-sm sm:text-base md:text-lg leading-relaxed whitespace-pre-wrap opacity-90 font-mono">
 {{ roast }}
             </pre>
 
-            <p class="text-sm opacity-50 mt-4">{{ time }}</p>
+            <p class="text-xs sm:text-sm text-gray-500 mt-4">{{ time }}</p>
         </div>
         {% endfor %}
     </div>
 
-    <a href="/" class="fixed bottom-10 left-1/2 -translate-x-1/2 text-4xl underline hover:text-red-400">
-        ROAST ANOTHER
-    </a>
+    <!-- BACK BUTTON -->
+    <div class="fixed bottom-6 left-1/2 -translate-x-1/2">
+        <a href="/" class="text-xl sm:text-2xl underline hover:text-red-400 transition font-bold">
+            ← Roast Another
+        </a>
+    </div>
+
 </body>
 </html>

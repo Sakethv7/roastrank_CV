@@ -6,3 +6,4 @@ httpx
 google-generativeai
 PyPDF2
 python-dotenv
+python-docx

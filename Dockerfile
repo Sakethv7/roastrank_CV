@@ -1,22 +1,22 @@
 FROM python:3.10-slim
 
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    poppler-utils \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
-# Copy requirements and install dependencies
+# Copy requirements first (better caching)
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy your Flask app and all files
+# Copy the rest of the app
 COPY . .
 
-# Create instance directory for SQLite database
-RUN mkdir -p instance
-
-# Expose port 7860 (Hugging Face Spaces requirement)
+# Expose port 7860 (required by HF)
 EXPOSE 7860
 
-# Set environment variables
-ENV PYTHONUNBUFFERED=1
-
-# Run the Flask app on port 7860
-CMD ["python", "main.py"]
+# Better FastAPI/uvicorn command
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "7860"]
