@@ -5,6 +5,7 @@ colorFrom: red
 colorTo: pink
 sdk: docker
 pinned: false
+app_file: main.py
 ---
 
 # RoastRank - CV Roaster 🔥
