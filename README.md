@@ -2,12 +2,12 @@
 title: RoastRank
 emoji: 🔥
 colorFrom: red
-colorTo: orange
+colorTo: pink
 sdk: docker
 pinned: false
 ---
 
-# RoastRank - CV Roaster ��
+# RoastRank - CV Roaster 🔥
 
 AI-powered CV roasting application using Google Gemini. Upload your CV and get brutally honest feedback!
 
