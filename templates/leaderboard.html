@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html class="bg-black text-white min-h-screen">
+<head>
+    <title>RoastRank Leaderboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="p-10">
+    <h1 class="text-8xl font-black text-center bg-gradient-to-r from-yellow-400 to-red-600 bg-clip-text text-transparent mb-16">
+        GLOBAL ROASTRANK
+    </h1>
+
+    <div class="max-w-5xl mx-auto space-y-8">
+        {% for score, roast, time in roasts %}
+        <div class="bg-gray-900 p-10 rounded-3xl border-4
+            {% if loop.index0 == 0 %}
+                border-yellow-500 shadow-2xl shadow-yellow-500/50
+            {% elif loop.index0 < 3 %}
+                border-gray-300
+            {% else %}
+                border-gray-700
+            {% endif %}
+        ">
+            <div class="flex justify-between items-center mb-6">
+                <span class="text-6xl font-black">#{{ loop.index }}</span>
+                <span class="text-7xl font-bold text-yellow-400">{{ score }}/100</span>
+            </div>
+
+            <!-- preserve line breaks from the roast text -->
+            <pre class="text-xl leading-relaxed opacity-90 whitespace-pre-wrap font-mono">
+{{ roast }}
+            </pre>
+
+            <p class="text-sm opacity-50 mt-4">{{ time }}</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <a href="/" class="fixed bottom-10 left-1/2 -translate-x-1/2 text-4xl underline hover:text-red-400">
+        ROAST ANOTHER
+    </a>
+</body>
+</html>

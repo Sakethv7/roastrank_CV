@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en" class="bg-black text-white overflow-x-hidden">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>RoastRank — Get Professionally Destroyed</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@900&family=Roboto+Mono:wght@700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+  <style>
+    .glitch { 
+      font-family: 'Orbitron', sans-serif; 
+      animation: glitch 3s infinite;
+      text-shadow: 0 0 20px rgba(255, 0, 0, 0.8);
+    }
+    @keyframes glitch {
+      0%, 100% { text-shadow: 0.05em 0 0 red, -0.05em 0 0 cyan, 0 0 30px rgba(255, 0, 0, 0.8); }
+      15% { text-shadow: -0.05em -0.05em 0 red, 0.05em 0.05em 0 cyan, 0 0 30px rgba(0, 255, 255, 0.8); }
+      50% { text-shadow: 0.05em -0.05em 0 cyan, -0.05em 0.05em 0 red, 0 0 30px rgba(255, 255, 0, 0.8); }
+    }
+    
+    #particles-js { 
+      position: fixed; 
+      width: 100%; 
+      height: 100%; 
+      top: 0; 
+      left: 0; 
+      z-index: 0; 
+    }
+    
+    .fire-text { 
+      background: linear-gradient(45deg, #ff0000, #ff7300, #fffb00, #ff0000); 
+      background-size: 300% 300%;
+      -webkit-background-clip: text; 
+      -webkit-text-fill-color: transparent;
+      animation: fire-flow 3s ease infinite;
+    }
+    
+    @keyframes fire-flow {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+    
+    .upload-btn {
+      position: relative;
+      overflow: hidden;
+      transition: all 0.4s ease;
+    }
+    
+    .upload-btn::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.3);
+      transform: translate(-50%, -50%);
+      transition: width 0.6s, height 0.6s;
+    }
+    
+    .upload-btn:hover::before {
+      width: 400px;
+      height: 400px;
+    }
+    
+    .pulse-ring {
+      animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+    }
+    
+    @keyframes pulse-ring {
+      0% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7); }
+      70% { box-shadow: 0 0 0 30px rgba(255, 0, 0, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0); }
+    }
+    
+    .loading-spin {
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .stat-card {
+      backdrop-filter: blur(10px);
+      background: rgba(255, 0, 0, 0.1);
+      border: 2px solid rgba(255, 0, 0, 0.3);
+      transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-5px);
+      border-color: rgba(255, 0, 0, 0.8);
+      box-shadow: 0 10px 30px rgba(255, 0, 0, 0.3);
+    }
+  </style>
+</head>
+<body class="min-h-screen relative">
+  <div id="particles-js"></div>
+  
+  <div class="relative z-10 flex flex-col items-center justify-center min-h-screen text-center px-4 md:px-6 py-12">
+    
+    <!-- Main Title -->
+    <div class="mb-12">
+      <h1 class="glitch text-7xl md:text-9xl lg:text-[12rem] font-black tracking-tighter mb-4 leading-none">ROASTRANK</h1>
+      <p class="text-2xl md:text-4xl lg:text-5xl font-bold fire-text mb-6 animate-pulse px-4" style="font-family: 'Roboto Mono', monospace;">
+        Upload your CV. Get professionally obliterated.
+      </p>
+      <p class="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto px-4">
+        Our AI analyzes your resume and delivers a brutally honest roast. Think your CV is good? Let's find out.
+      </p>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16 w-full max-w-4xl px-4">
+      <div class="stat-card p-6 rounded-2xl">
+        <div class="text-5xl font-black text-red-500 mb-2">10K+</div>
+        <div class="text-gray-300 text-lg">CVs Roasted</div>
+      </div>
+      <div class="stat-card p-6 rounded-2xl">
+        <div class="text-5xl font-black text-yellow-500 mb-2">0.01%</div>
+        <div class="text-gray-300 text-lg">Get 90+ Score</div>
+      </div>
+      <div class="stat-card p-6 rounded-2xl">
+        <div class="text-5xl font-black text-cyan-500 mb-2">100%</div>
+        <div class="text-gray-300 text-lg">Savage Honesty</div>
+      </div>
+    </div>
+
+    <!-- Upload Form -->
+    <form action="/upload" method="post" enctype="multipart/form-data" class="mb-8">
+      <label class="cursor-pointer block">
+        <input 
+          type="file" 
+          name="file" 
+          accept=".pdf,.docx,.txt" 
+          required 
+          class="hidden" 
+          onchange="this.form.submit(); document.getElementById('loading').classList.remove('hidden'); document.querySelector('form').style.display='none';"
+        />
+        <div class="upload-btn bg-gradient-to-r from-red-600 via-orange-600 to-red-600 hover:from-red-700 hover:via-orange-700 hover:to-red-700 text-white font-black text-3xl md:text-5xl lg:text-6xl py-8 px-12 md:px-20 rounded-3xl shadow-2xl transform hover:scale-105 transition-all duration-300 border-4 border-yellow-500 pulse-ring">
+          <span class="relative z-10">🔥 DROP YOUR CV AND BURN 🔥</span>
+        </div>
+      </label>
+      <p class="text-sm md:text-base text-gray-500 mt-4">Supports PDF, DOCX, TXT • Max 10 CVs per day</p>
+    </form>
+
+    <!-- Loading State -->
+    <div id="loading" class="hidden">
+      <div class="flex flex-col items-center gap-6">
+        <div class="loading-spin text-8xl">🔥</div>
+        <div class="text-4xl md:text-6xl font-black text-red-500 animate-pulse" style="font-family: 'Orbitron', sans-serif;">SCANNING...</div>
+        <div class="text-2xl md:text-4xl text-yellow-400 animate-pulse">AI is sharpening the knives...</div>
+        <div class="flex gap-2">
+          <div class="w-4 h-4 bg-red-500 rounded-full animate-bounce" style="animation-delay: 0s;"></div>
+          <div class="w-4 h-4 bg-orange-500 rounded-full animate-bounce" style="animation-delay: 0.2s;"></div>
+          <div class="w-4 h-4 bg-yellow-500 rounded-full animate-bounce" style="animation-delay: 0.4s;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Leaderboard Link -->
+    <a href="/leaderboard" class="mt-12 text-2xl md:text-3xl underline hover:text-red-400 transition animate-pulse font-bold">
+      View the Hall of Shame →
+    </a>
+
+    <!-- Footer Info -->
+    <div class="mt-20 max-w-2xl text-center px-4">
+      <p class="text-gray-500 text-sm md:text-base leading-relaxed">
+        ⚠️ Warning: This tool provides brutally honest feedback. If you can't handle the truth, don't upload. 
+        By using this service, you acknowledge that your feelings might get hurt.
+      </p>
+    </div>
+
+  </div>
+
+  <div class="mt-20">
+    <a href="/leaderboard" class="text-5xl font-black underline hover:text-red-400 animate-pulse">
+      OPEN HALL OF SHAME → 
+    </a>
+  </div>
+
+  <script>
+    particlesJS("particles-js", {
+      particles: { 
+        number: { value: 120, density: { enable: true, value_area: 800 } }, 
+        color: { value: ["#ff0000", "#ff7300", "#ffff00"] }, 
+        shape: { type: "circle" }, 
+        opacity: { value: 0.6, random: true, anim: { enable: true, speed: 1, opacity_min: 0.1 } }, 
+        size: { value: 4, random: true, anim: { enable: true, speed: 3, size_min: 0.1 } }, 
+        line_linked: { enable: true, distance: 150, color: "#ff0000", opacity: 0.2, width: 1 }, 
+        move: { 
+          enable: true, 
+          speed: 3, 
+          direction: "none", 
+          random: true, 
+          straight: false, 
+          out_mode: "out", 
+          bounce: false 
+        } 
+      },
+      interactivity: { 
+        detect_on: "canvas", 
+        events: { 
+          onhover: { enable: true, mode: "repulse" },
+          onclick: { enable: true, mode: "push" }
+        },
+        modes: {
+          repulse: { distance: 100, duration: 0.4 },
+          push: { particles_nb: 4 }
+        }
+      },
+      retina_detect: true
+    });
+  </script>
+</body>
+</html>

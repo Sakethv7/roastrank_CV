@@ -1,0 +1,8 @@
+fastapi
+uvicorn[standard]
+jinja2
+python-multipart
+httpx
+google-generativeai
+PyPDF2
+python-dotenv
