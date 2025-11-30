@@ -2,109 +2,80 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Global Roastrank Leaderboard</title>
-<script src="https://cdn.tailwindcss.com"></script>
+<title>RoastRank Leaderboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 body {
-    background: #000;
-    color: white;
-    font-family: 'Roboto Mono', monospace;
+    margin: 0;
+    padding: 0;
+    background: black;
+    color: cyan;
+    font-family: 'Orbitron', sans-serif;
 }
+
+h1 {
+    margin: 30px 0;
+    text-align: center;
+    text-shadow: 0 0 15px cyan;
+    letter-spacing: 3px;
+}
+
+.board {
+    width: 92%;
+    max-width: 1100px;
+    margin: auto;
+}
+
 .card {
-    background: rgba(255,0,0,0.08);
-    border: 1px solid rgba(255,0,0,0.3);
-    padding: 20px;
-    border-radius: 12px;
-    margin-bottom: 25px;
-    transition: 0.2s;
+    background: rgba(0, 60, 70, 0.2);
+    border-left: 4px solid cyan;
+    padding: 18px;
+    margin: 18px 0;
+    border-radius: 10px;
+    box-shadow: 0 0 10px cyan;
+    animation: slide 0.4s ease-out;
 }
-.card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 0 18px rgba(255,0,0,0.4);
+
+@keyframes slide {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
 }
-.title {
-    font-size: 48px;
-    font-weight: 900;
-    text-shadow: 0 0 10px red;
-}
-.rank {
-    font-size: 28px;
-    font-weight: bold;
-    margin-bottom: 10px;
-}
-.section-title {
-    font-weight: bold;
-    color: #ff4f9f;
-    margin-top: 10px;
-}
+
 .score {
-    color: gold;
-    font-size: 26px;
+    font-size: 1.8rem;
+    margin-bottom: 10px;
+    text-shadow: 0 0 10px #0ff;
+}
+
+.name {
+    font-size: 1.2rem;
     font-weight: bold;
+    color: #9ff;
+}
+
+.timestamp {
+    font-size: 0.85rem;
+    opacity: 0.7;
+    margin-top: 6px;
 }
 </style>
 </head>
 
-<body class="p-6">
+<body>
 
-<h1 class="title mb-10">🔥 GLOBAL ROASTRANK</h1>
+<h1>GLOBAL ROASTRANK</h1>
 
-{% for r in roasts %}
-<div class="card">
-
-    <div class="rank">#{{ loop.index }}</div>
-
-    <div class="text-2xl font-bold mb-2">{{ r[0] }}</div>
-
-    <div class="score">{{ r[1] }}/100</div>
-
-    <div class="mt-4">
-        <div class="section-title">ONE-LINE ROAST</div>
-        <p>{{ r[2] }}</p>
+<div class="board">
+    {% for name, score, one_line, overview, detailed, strengths, improvements, fun_obs, created_at in roasts %}
+    <div class="card">
+        <div class="name">{{ name }}</div>
+        <div class="score">{{ score }}/100</div>
+        <p>{{ one_line }}</p>
+        <div class="timestamp">{{ created_at }}</div>
     </div>
-
-    {% if r[3] %}
-    <div class="mt-4">
-        <div class="section-title">OVERVIEW</div>
-        <p>{{ r[3] }}</p>
-    </div>
-    {% endif %}
-
-    {% if r[4] %}
-    <div class="mt-4">
-        <div class="section-title">FULL ROAST</div>
-        <p>{{ r[4] }}</p>
-    </div>
-    {% endif %}
-
-    {% if r[5] %}
-    <div class="mt-4">
-        <div class="section-title">STRENGTHS</div>
-        <p>{{ r[5] }}</p>
-    </div>
-    {% endif %}
-
-    {% if r[6] %}
-    <div class="mt-4">
-        <div class="section-title">IMPROVEMENTS</div>
-        <p>{{ r[6] }}</p>
-    </div>
-    {% endif %}
-
-    {% if r[7] %}
-    <div class="mt-4">
-        <div class="section-title">FUN OBSERVATION</div>
-        <p>{{ r[7] }}</p>
-    </div>
-    {% endif %}
-
-    <div class="text-gray-400 text-xs mt-4">{{ r[8] }}</div>
-
+    {% endfor %}
 </div>
-{% endfor %}
-
-<a href="/" class="text-pink-400 underline mt-6 block">← Go Back</a>
 
 </body>
 </html>

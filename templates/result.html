@@ -2,103 +2,134 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Roast Result</title>
-<script src="https://cdn.tailwindcss.com"></script>
+<title>Roast Completed – RoastRank</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 body {
-    background: #000;
-    color: white;
-    font-family: 'Roboto Mono', monospace;
+    margin: 0;
+    padding: 0;
+    background: black;
+    color: #0ff;
+    font-family: 'Orbitron', sans-serif;
 }
+
+h1, h2 {
+    text-align: center;
+    text-shadow: 0 0 12px cyan;
+    letter-spacing: 2px;
+}
+
+.container {
+    width: 90%;
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 25px;
+    border-radius: 15px;
+    background: rgba(0, 30, 40, 0.6);
+    border: 2px solid #0ff;
+    box-shadow: 0 0 20px cyan, inset 0 0 10px #0ff;
+    animation: holo-fade 0.8s ease-out;
+}
+
+@keyframes holo-fade {
+    from { opacity: 0; transform: scale(0.96); }
+    to { opacity: 1; transform: scale(1); }
+}
+
 .section {
-    background: rgba(255,0,0,0.08);
-    border: 1px solid rgba(255,0,0,0.3);
-    padding: 20px;
-    border-radius: 12px;
-    margin-bottom: 30px;
-    box-shadow: 0 0 15px rgba(255,0,0,0.3);
+    margin-top: 22px;
+    padding: 18px;
+    background: rgba(0, 60, 70, 0.25);
+    border-left: 4px solid cyan;
+    border-radius: 10px;
 }
-.title {
-    font-size: 60px;
-    font-weight: 900;
-    text-shadow: 0 0 20px red;
-}
-.label {
-    font-size: 24px;
-    color: #ff4f9f;
-    font-weight: bold;
-    margin-bottom: 10px;
-}
+
 .score {
-    font-size: 55px;
-    color: gold;
-    font-weight: bold;
-    margin-top: 20px;
+    font-size: 2.3rem;
+    text-align: center;
+    margin-bottom: 10px;
+    text-shadow: 0 0 20px #0ff;
+}
+
+.back-btn {
+    margin: 40px auto;
+    padding: 16px 24px;
+    border: 2px solid #0ff;
+    color: #0ff;
+    text-decoration: none;
+    border-radius: 10px;
+    font-size: 1.2rem;
+    display: block;
+    width: 250px;
+    text-align: center;
+    background: rgba(0,255,255,0.05);
+    box-shadow: 0 0 12px #0ff;
+    transition: 0.2s ease-in-out;
+}
+
+.back-btn:hover {
+    background: rgba(0,255,255,0.20);
+    transform: scale(1.05);
 }
 </style>
-
 </head>
-<body class="p-8">
 
-<h1 class="title mb-8">🔥 ROAST COMPLETE</h1>
+<body>
 
-<div class="text-3xl mb-8">
-    Candidate: <span class="text-pink-400">{{ name }}</span>
+<h1>ROAST COMPLETE</h1>
+<h2>Candidate: {{ name }}</h2>
+
+<div class="container">
+
+    <div class="score">{{ score }}/100</div>
+    <p style="text-align:center;opacity:0.8;">Evaluation generated successfully</p>
+
+    {% if one_line %}
+    <div class="section">
+        <h3>ONE-LINE ROAST</h3>
+        <p>{{ one_line }}</p>
+    </div>
+    {% endif %}
+
+    {% if overview %}
+    <div class="section">
+        <h3>OVERVIEW</h3>
+        <p>{{ overview }}</p>
+    </div>
+    {% endif %}
+
+    {% if detailed %}
+    <div class="section">
+        <h3>FULL ROAST</h3>
+        <p>{{ detailed }}</p>
+    </div>
+    {% endif %}
+
+    {% if strengths %}
+    <div class="section">
+        <h3>STRENGTHS</h3>
+        <p>{{ strengths }}</p>
+    </div>
+    {% endif %}
+
+    {% if improvements %}
+    <div class="section">
+        <h3>IMPROVEMENTS</h3>
+        <p>{{ improvements }}</p>
+    </div>
+    {% endif %}
+
+    {% if fun_obs %}
+    <div class="section">
+        <h3>FUN OBSERVATION</h3>
+        <p>{{ fun_obs }}</p>
+    </div>
+    {% endif %}
+
 </div>
 
-<div class="score">{{ score }}/100</div>
-
-<p class="text-gray-400 mb-10">Evaluation generated successfully</p>
-
-<!-- ONE-LINE -->
-<div class="section">
-    <div class="label">ONE-LINE ROAST</div>
-    <p>{{ one_line }}</p>
-</div>
-
-<!-- OVERVIEW -->
-{% if overview %}
-<div class="section">
-    <div class="label">OVERVIEW</div>
-    <p>{{ overview }}</p>
-</div>
-{% endif %}
-
-<!-- FULL ROAST -->
-{% if detailed %}
-<div class="section">
-    <div class="label">FULL ROAST</div>
-    <p>{{ detailed }}</p>
-</div>
-{% endif %}
-
-<!-- STRENGTHS -->
-{% if strengths %}
-<div class="section">
-    <div class="label">STRENGTHS</div>
-    <p>{{ strengths }}</p>
-</div>
-{% endif %}
-
-<!-- IMPROVEMENTS -->
-{% if improvements %}
-<div class="section">
-    <div class="label">IMPROVEMENTS</div>
-    <p>{{ improvements }}</p>
-</div>
-{% endif %}
-
-<!-- FUN OBSERVATION -->
-{% if fun_obs %}
-<div class="section">
-    <div class="label">FUN OBSERVATION</div>
-    <p>{{ fun_obs }}</p>
-</div>
-{% endif %}
-
-<a class="text-pink-400 underline text-lg" href="/">Roast Another CV</a>
-<a class="text-pink-400 underline text-lg ml-8" href="/leaderboard">View Leaderboard</a>
+<a href="/" class="back-btn">⬅ Start New Roast</a>
 
 </body>
 </html>
