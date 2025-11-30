@@ -5,13 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1"/>
   <title>RoastRank — Get Professionally Destroyed</title>
   
-  <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@800;900&family=Roboto+Mono:wght@700&display=swap" rel="stylesheet">
 
-  <!-- Particles -->
   <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
 
   <style>
@@ -32,6 +29,7 @@
       -webkit-text-fill-color: transparent;
       animation: fire-flow 3s ease infinite;
     }
+
     @keyframes fire-flow {
       0%, 100% { background-position: 0% 50%; }
       50% { background-position: 100% 50%; }
@@ -42,6 +40,7 @@
       overflow: hidden;
       transition: all 0.3s ease;
     }
+
     .upload-btn::before {
       content: '';
       position: absolute;
@@ -50,8 +49,9 @@
       border-radius: 50%;
       background: rgba(255,255,255,0.25);
       transform: translate(-50%, -50%);
-      transition: width .5s ease, height .55s ease;
+      transition: width .5s ease, height .5s ease;
     }
+
     .upload-btn:hover::before {
       width: 300px; height: 300px;
     }
@@ -67,6 +67,7 @@
       border: 1.5px solid rgba(255, 0, 0, 0.25);
       transition: 0.25s;
     }
+
     .stat-card:hover {
       border-color: rgba(255,0,0,0.7);
       transform: translateY(-4px);
@@ -75,6 +76,7 @@
 
     .loading-spin { animation: spin 1.2s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg);} }
+
   </style>
 </head>
 
@@ -83,7 +85,6 @@
 
   <main class="relative z-10 flex flex-col items-center w-full px-4 pt-16 pb-24">
 
-    <!-- Title -->
     <h1 class="glitch text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-tight text-center leading-tight">
       ROASTRANK
     </h1>
@@ -96,43 +97,28 @@
       Choose your roast level. Quick or full humiliation.
     </p>
 
-    <!-- Stats -->
+    <!-- FUNNY STATS -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full max-w-3xl mb-12">
-      <div class="stat-card p-4 rounded-xl text-center">
-        <div class="text-4xl font-black text-red-500">10K+</div>
-        <div class="text-gray-300 text-sm mt-1">CVs Roasted</div>
-      </div>
-      <div class="stat-card p-4 rounded-xl text-center">
-        <div class="text-4xl font-black text-yellow-400">0.01%</div>
-        <div class="text-gray-300 text-sm mt-1">Score Above 90</div>
-      </div>
-      <div class="stat-card p-4 rounded-xl text-center">
-        <div class="text-4xl font-black text-cyan-400">100%</div>
-        <div class="text-gray-300 text-sm mt-1">Savage Honesty</div>
-      </div>
-    </div>
 
-    <!-- Roast Mode Buttons -->
-    <div class="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
+      <div class="stat-card p-4 rounded-xl text-center">
+        <div class="text-4xl font-black">😵</div>
+        <div class="text-red-400 text-lg font-bold mt-2">83% Regretted Uploading</div>
+      </div>
 
-      <button id="quick-btn"
-        class="px-5 py-2 text-sm sm:text-base rounded-full font-bold
-               bg-yellow-600/30 border border-yellow-500 text-yellow-300
-               hover:bg-yellow-600/40 transition">
-        ⚡ Quick Roast (4 lines)
-      </button>
+      <div class="stat-card p-4 rounded-xl text-center">
+        <div class="text-4xl font-black">🔥</div>
+        <div class="text-yellow-400 text-lg font-bold mt-2">4.2s to Emotional Damage</div>
+      </div>
 
-      <button id="full-btn"
-        class="px-5 py-2 text-sm sm:text-base rounded-full font-bold
-               bg-red-600/30 border border-red-500 text-red-300
-               hover:bg-red-600/40 transition">
-        🔥 Full Roast (compact)
-      </button>
+      <div class="stat-card p-4 rounded-xl text-center">
+        <div class="text-4xl font-black">📉</div>
+        <div class="text-cyan-400 text-lg font-bold mt-2">0% CVs Survive Untouched</div>
+      </div>
 
     </div>
 
-    <!-- Upload Form -->
-    <form action="/upload" method="post" enctype="multipart/form-data" class="w-full flex flex-col items-center mt-8">
+    <!-- UPLOAD + ROAST TYPE -->
+    <form action="/upload" method="post" enctype="multipart/form-data" class="w-full flex flex-col items-center">
       <label class="w-full max-w-xs sm:max-w-sm cursor-pointer">
         <input type="file" name="file" accept=".pdf,.docx,.txt" required class="hidden"
           onchange="this.form.submit(); document.getElementById('loading').classList.remove('hidden'); document.querySelector('#cta').classList.add('hidden');"/>
@@ -141,18 +127,24 @@
           🔥 UPLOAD CV 🔥
         </div>
       </label>
-
-      <p class="text-gray-500 text-xs sm:text-sm mt-3">PDF • DOCX • TXT • Max 10/day</p>
+      <p class="text-gray-500 text-xs sm:text-sm mt-3">PDF · DOCX · TXT · Max 10/day</p>
     </form>
 
-    <!-- Loading -->
-    <div id="loading" class="hidden mt-16 flex flex-col items-center gap-4">
+    <div class="flex flex-col sm:flex-row gap-4 mt-8">
+      <a href="#" class="bg-yellow-600 hover:bg-yellow-500 text-black font-bold px-6 py-3 rounded-xl text-lg shadow-md">
+        ⚡ QUICK ROAST (4 lines)
+      </a>
+      <a href="#" class="bg-red-600 hover:bg-red-500 font-bold px-6 py-3 rounded-xl text-lg shadow-md">
+        🔥 FULL ROAST (compact)
+      </a>
+    </div>
+
+    <div class="hidden mt-16" id="loading">
       <div class="loading-spin text-6xl">🔥</div>
       <div class="text-3xl font-black text-red-500 animate-pulse">SCANNING...</div>
       <div class="text-lg text-yellow-400 animate-pulse">Sharpening the knives...</div>
     </div>
 
-    <!-- Leaderboard Link -->
     <a href="/leaderboard" class="mt-10 text-xl sm:text-2xl underline hover:text-red-400 transition font-bold">
       View the Hall of Shame →
     </a>
@@ -163,34 +155,7 @@
 
   </main>
 
-  <!-- Roast mode logic -->
   <script>
-    let roastMode = "quick";
-
-    const quickBtn = document.getElementById("quick-btn");
-    const fullBtn = document.getElementById("full-btn");
-
-    quickBtn.onclick = () => {
-      roastMode = "quick";
-      quickBtn.classList.add("ring-2", "ring-yellow-400");
-      fullBtn.classList.remove("ring-2", "ring-red-400");
-    };
-
-    fullBtn.onclick = () => {
-      roastMode = "full";
-      fullBtn.classList.add("ring-2", "ring-red-400");
-      quickBtn.classList.remove("ring-2", "ring-yellow-400");
-    };
-
-    document.querySelector("input[type='file']").addEventListener("change", () => {
-      const form = document.querySelector("form");
-      const hidden = document.createElement("input");
-      hidden.type = "hidden";
-      hidden.name = "mode";
-      hidden.value = roastMode;
-      form.appendChild(hidden);
-    });
-
     particlesJS("particles-js", {
       particles: { number: { value: 70 }, size: { value: 2 } },
       interactivity: { events: { onhover: { enable: false }, onclick: { enable: false } } }
