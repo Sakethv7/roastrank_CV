@@ -16,6 +16,11 @@ import tempfile
 import json
 import re
 
+# ---- FORCE DELETE OLD DB ON EVERY DEPLOY (TEMPORARY FIX) ----
+if os.path.exists("roasts.db"):
+    print("🧹 Removing existing roasts.db to reset schema...")
+    os.remove("roasts.db")
+
 # ------------------ INIT ------------------
 load_dotenv()
 
