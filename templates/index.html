@@ -1,190 +1,123 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="bg-black text-white overflow-x-hidden">
 <head>
-<meta charset="UTF-8">
-<title>RoastRank – Galactic Resume Annihilator</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RoastRank — Galactic Resume Destruction</title>
 
-<style>
-/* ============ GLOBAL ============ */
-body {
-    margin: 0;
-    font-family: 'Orbitron', sans-serif;
-    background: black;
-    color: white;
-    overflow-x: hidden;
-}
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
 
-h1 {
-    text-align: center;
-    margin-top: 40px;
-    font-size: 2.4rem;
-    letter-spacing: 2px;
-    text-shadow: 0 0 10px #0ff;
-}
+  <!-- Starfield -->
+  <style>
+    #starfield {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      opacity: 0.55;
+    }
 
-/* ============ HOLOGRAM UPLOAD BUTTON ============ */
-.holo-button {
-    margin: 40px auto;
-    width: 300px;
-    padding: 18px 20px;
-    border: 2px solid #0ff;
-    color: #0ff;
-    text-align: center;
-    font-size: 1.3rem;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: 0.2s ease-in-out;
-    display: block;
-    background: rgba(0, 255, 255, 0.08);
-    box-shadow: 0 0 15px #0ff, inset 0 0 10px #0ff;
-    animation: holo-glow 2s infinite alternate ease-in-out;
-}
+    .glow {
+      text-shadow: 0 0 20px rgba(255,200,50,0.9),
+                   0 0 40px rgba(255,140,0,0.7);
+    }
 
-@keyframes holo-glow {
-    from { box-shadow: 0 0 10px #0ff, inset 0 0 5px #0ff; }
-    to { box-shadow: 0 0 25px #0ff, inset 0 0 18px #0ff; }
-}
+    .mode-btn {
+      border: 1.5px solid rgba(255,255,255,0.25);
+      transition: 0.2s ease;
+    }
+    .mode-btn.selected {
+      background: linear-gradient(90deg, #ffd03b, #ff8a00);
+      color: black;
+      border-color: transparent;
+      transform: scale(1.03);
+    }
 
-.holo-button:hover {
-    transform: scale(1.05);
-    background: rgba(0, 255, 255, 0.15);
-}
-
-/* Hidden real input */
-#file-input { display: none; }
-
-/* ============ MODE TOGGLE ============ */
-.toggle-box {
-    text-align: center;
-    margin-top: 20px;
-}
-
-.toggle-box label {
-    font-size: 1.1rem;
-    margin-right: 10px;
-}
-
-.toggle-select {
-    padding: 8px 12px;
-    border-radius: 8px;
-    border: 2px solid #0ff;
-    background: black;
-    color: #0ff;
-    font-size: 1rem;
-    box-shadow: 0 0 8px #0ff;
-}
-
-/* ============ LOADING HYPERDRIVE SCREEN ============ */
-#loading-screen {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: black;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-    z-index: 5000;
-}
-
-#hyperdrive-text {
-    font-size: 2.2rem;
-    letter-spacing: 3px;
-    text-shadow: 0 0 12px cyan, 0 0 20px cyan;
-    animation: flicker 1.2s infinite alternate;
-}
-
-@keyframes flicker {
-    from { opacity: 0.6; }
-    to { opacity: 1; }
-}
-
-/* Hyperspace tunnel */
-.hyperdrive-tunnel {
-    position: fixed;
-    inset: 0;
-    background: radial-gradient(circle, black 40%, #002b33 100%);
-    overflow: hidden;
-    z-index: -1;
-}
-
-.star {
-    position: absolute;
-    width: 2px;
-    height: 60px;
-    background: cyan;
-    opacity: 0.7;
-    animation: hyperspace 1s linear infinite;
-}
-
-@keyframes hyperspace {
-    from { transform: translateY(0) scaleY(0.3); opacity: 0.2; }
-    to { transform: translateY(120vh) scaleY(1); opacity: 1; }
-}
-
-</style>
+    #loadingDiv {
+      display: none;
+    }
+  </style>
 </head>
 
-<body>
+<body class="relative min-h-screen flex flex-col">
 
-<div class="hyperdrive-tunnel" id="tunnel"></div>
+  <canvas id="starfield"></canvas>
 
-<h1>ROASTRANK – Enter Hyperdrive</h1>
+  <main class="relative z-10 w-full flex flex-col items-center px-6 pt-20 pb-24">
 
-<!-- ============ MODE SELECTOR ============ -->
-<div class="toggle-box">
-    <label for="mode">Roast Mode:</label>
-    <select id="mode" class="toggle-select">
-        <option value="quick">Quick Roast (4 lines)</option>
-        <option value="full">Full Roast (more brutal)</option>
-    </select>
-    <p style="font-size:0.9rem;color:#9bf;margin-top:5px;">
-        ⚠ Full roast takes 1–2 seconds longer.
+    <!-- TITLE -->
+    <h1 class="glow text-5xl sm:text-6xl md:text-7xl font-extrabold text-center"
+        style="font-family:'Orbitron',sans-serif;">
+      ROASTRANK
+    </h1>
+
+    <p class="text-gray-300 text-base sm:text-lg mt-3 mb-10 text-center font-mono">
+      Upload your CV. Brace for emotional damage.
     </p>
-</div>
 
-<!-- ============ HOLOGRAM BUTTON ============ -->
-<label for="file-input" class="holo-button">INITIATE ROAST SEQUENCE</label>
-<form id="upload-form" action="/upload" method="POST" enctype="multipart/form-data">
-    <input id="file-input" type="file" name="file" accept=".pdf,.docx,.txt">
-    <input type="hidden" name="mode" id="mode-hidden">
-</form>
+    <!-- MODE TOGGLE -->
+    <div class="flex gap-4 mb-8">
+      <button type="button" id="quickBtn" onclick="setMode('quick')"
+              class="mode-btn selected px-5 py-3 rounded-xl font-bold">
+        ⚡ Quick Roast
+      </button>
+      <button type="button" id="fullBtn" onclick="setMode('full')"
+              class="mode-btn px-5 py-3 rounded-xl font-bold">
+        🔥 Full Roast
+      </button>
+    </div>
 
-<!-- ============ LOADING SCREEN ============ -->
-<div id="loading-screen">
-    <div id="hyperdrive-text">ENGAGING HYPERDRIVE…</div>
-</div>
+    <p class="text-gray-400 text-xs mb-6 font-mono">
+      * Full roast takes ~1 second longer
+    </p>
 
-<script>
-// ==== Hyperspace star generator ====
-const tunnel = document.getElementById("tunnel");
-for (let i = 0; i < 120; i++) {
-    const star = document.createElement("div");
-    star.classList.add("star");
-    star.style.left = Math.random() * 100 + "vw";
-    star.style.animationDelay = Math.random() + "s";
-    tunnel.appendChild(star);
-}
+    <!-- UPLOAD FORM -->
+    <form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data"
+          class="flex flex-col items-center w-full max-w-sm">
 
-// ==== File Upload Logic ====
-const fileInput = document.getElementById("file-input");
-const uploadForm = document.getElementById("upload-form");
-const loadingScreen = document.getElementById("loading-screen");
+      <input type="hidden" id="modeInput" name="mode" value="quick">
 
-fileInput.addEventListener("change", () => {
-    if (!fileInput.files.length) return;
+      <label class="w-full cursor-pointer bg-white/10 py-6 rounded-xl border border-white/20 text-center hover:bg-white/20 transition">
+        <span class="font-mono text-sm tracking-wide">Select CV (PDF / DOCX / TXT)</span>
+        <input type="file" name="file" class="hidden" accept=".pdf,.docx,.txt"
+               onchange="submitUpload()" required>
+      </label>
+    </form>
 
-    // Set mode
-    document.getElementById("mode-hidden").value =
-        document.getElementById("mode").value;
+    <!-- LOADING UI -->
+    <div id="loadingDiv" class="mt-8 font-mono text-yellow-300 text-lg animate-pulse">
+      Uploading… Initializing roast engines…
+    </div>
 
-    // Show hyperdrive
-    loadingScreen.style.display = "flex";
+    <!-- LEADERBOARD BUTTON -->
+    <a href="/leaderboard"
+       class="fixed bottom-6 right-6 text-yellow-300 font-mono underline text-sm hover:text-yellow-200">
+      View Leaderboard →
+    </a>
 
-    // Delay to let animation start
-    setTimeout(() => uploadForm.submit(), 400);
-});
-</script>
+  </main>
+
+  <script src="/static/starfield.js"></script>
+
+  <script>
+    // --- Roast Mode Toggle ---
+    function setMode(m) {
+      document.getElementById("modeInput").value = m;
+      document.getElementById("quickBtn").classList.toggle("selected", m === "quick");
+      document.getElementById("fullBtn").classList.toggle("selected", m === "full");
+    }
+
+    // --- Form Submit UI ---
+    function submitUpload() {
+      document.getElementById("loadingDiv").style.display = "block";
+      setTimeout(() => document.getElementById("uploadForm").submit(), 100);
+    }
+
+    // Start starfield
+    window.onload = startStarfield;
+  </script>
 
 </body>
 </html>

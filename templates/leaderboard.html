@@ -1,81 +1,70 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="bg-black text-white min-h-screen overflow-x-hidden">
 <head>
-<meta charset="UTF-8">
-<title>RoastRank Leaderboard</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <title>RoastRank — Leaderboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
 
-<style>
-body {
-    margin: 0;
-    padding: 0;
-    background: black;
-    color: cyan;
-    font-family: 'Orbitron', sans-serif;
-}
+  <style>
+    #starfield {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0.45;
+      z-index: 0;
+    }
 
-h1 {
-    margin: 30px 0;
-    text-align: center;
-    text-shadow: 0 0 15px cyan;
-    letter-spacing: 3px;
-}
+    .card {
+      background: rgba(255,255,255,0.06);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.15);
+    }
 
-.board {
-    width: 92%;
-    max-width: 1100px;
-    margin: auto;
-}
-
-.card {
-    background: rgba(0, 60, 70, 0.2);
-    border-left: 4px solid cyan;
-    padding: 18px;
-    margin: 18px 0;
-    border-radius: 10px;
-    box-shadow: 0 0 10px cyan;
-    animation: slide 0.4s ease-out;
-}
-
-@keyframes slide {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-.score {
-    font-size: 1.8rem;
-    margin-bottom: 10px;
-    text-shadow: 0 0 10px #0ff;
-}
-
-.name {
-    font-size: 1.2rem;
-    font-weight: bold;
-    color: #9ff;
-}
-
-.timestamp {
-    font-size: 0.85rem;
-    opacity: 0.7;
-    margin-top: 6px;
-}
-</style>
+    .glow {
+      text-shadow: 0 0 20px rgba(255,200,50,0.8);
+    }
+  </style>
 </head>
 
-<body>
+<body class="relative">
 
-<h1>GLOBAL ROASTRANK</h1>
+  <canvas id="starfield"></canvas>
 
-<div class="board">
-    {% for name, score, one_line, overview, detailed, strengths, improvements, fun_obs, created_at in roasts %}
-    <div class="card">
-        <div class="name">{{ name }}</div>
-        <div class="score">{{ score }}/100</div>
-        <p>{{ one_line }}</p>
-        <div class="timestamp">{{ created_at }}</div>
+  <div class="relative z-10 max-w-4xl mx-auto px-6 py-20">
+
+    <h1 class="text-center glow text-5xl sm:text-6xl md:text-7xl font-black mb-12"
+        style="font-family:'Orbitron',sans-serif;">
+      LEADERBOARD
+    </h1>
+
+    <div class="space-y-8">
+      {% for name, score, one, ov, det, strg, imp, fun, time in roasts %}
+      <div class="card rounded-3xl p-6 sm:p-8">
+
+        <div class="flex justify-between items-center mb-4">
+          <div class="text-xl font-mono text-gray-300">{{ name }}</div>
+          <div class="text-5xl font-black text-yellow-300">{{ score }}</div>
+        </div>
+
+        <pre class="whitespace-pre-wrap text-sm sm:text-base font-mono opacity-90">
+{{ one }}
+{{ det }}
+        </pre>
+
+        <p class="text-gray-500 text-xs mt-4 font-mono">{{ time }}</p>
+      </div>
+      {% endfor %}
     </div>
-    {% endfor %}
-</div>
+
+    <div class="text-center mt-12">
+      <a href="/" class="underline hover:text-yellow-300 font-mono">← Back to Upload</a>
+    </div>
+
+  </div>
+
+  <script src="/static/starfield.js"></script>
+  <script> window.onload = startStarfield; </script>
 
 </body>
 </html>
