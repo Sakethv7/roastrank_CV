@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="bg-black text-white">
+<html lang="en" class="bg-black text-white min-h-screen">
 <head>
   <meta charset="UTF-8" />
   <title>RoastRank — Mission Debrief</title>
@@ -43,7 +43,6 @@
 
 <body class="relative min-h-screen overflow-x-hidden">
 
-  <!-- PARTICLES -->
   <div id="particles-js"></div>
   <script>
     particlesJS("particles-js", {
@@ -56,25 +55,22 @@
     });
   </script>
 
-  <!-- CONTENT -->
   <div class="relative z-10 max-w-4xl mx-auto px-5 sm:px-10 py-20 space-y-12">
 
-    <!-- TITLE -->
     <h1 class="glitch text-center text-5xl sm:text-6xl md:text-7xl font-black tracking-tight">
       ROAST COMPLETE
     </h1>
 
-    <!-- SCORE -->
     <div class="text-center">
-      <div class="text-5xl sm:text-6xl md:text-7xl font-black text-yellow-400 animate-pulse"
+      <p class="text-gray-300 text-sm sm:text-base font-mono">Candidate: <span class="text-white font-bold">{{ name }}</span></p>
+      <div class="text-5xl sm:text-6xl md:text-7xl font-black text-yellow-400 animate-pulse mt-2"
            style="font-family:'Orbitron',sans-serif;">
         {{ score }}/100
       </div>
       <p class="text-gray-400 text-sm sm:text-base mt-2 font-mono">Evaluation generated successfully</p>
     </div>
 
-    <!-- CONTENT CARD -->
-    <div class="nebula-box rounded-3xl p-6 sm:p-10 space-y-10 font-mono">
+    <div class="nebula-box rounded-3xl p-6 sm:p-10 space-y-12 font-mono">
 
       <div>
         <h2 class="section-title text-2xl sm:text-3xl text-pink-400 mb-2">ONE-LINE ROAST</h2>
@@ -108,7 +104,6 @@
 
     </div>
 
-    <!-- BUTTONS -->
     <div class="flex flex-col sm:flex-row justify-center gap-6 pt-6">
       <a href="/" class="text-xl underline hover:text-pink-400 transition text-center">← Roast Another</a>
       <a href="/leaderboard" class="text-xl underline hover:text-green-400 transition text-center">View Leaderboard →</a>
