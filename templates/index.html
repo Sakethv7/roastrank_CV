@@ -1,150 +1,181 @@
 <!DOCTYPE html>
-<html lang="en" class="bg-black text-white">
+<html lang="en" class="bg-black text-white overflow-x-hidden">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0"/>
   <title>RoastRank — Get Professionally Destroyed</title>
+  
   <script src="https://cdn.tailwindcss.com"></script>
-
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Roboto+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@800;900&family=Roboto+Mono:wght@700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
 
   <style>
-    .title {
-      font-family: 'Orbitron', sans-serif;
-      text-shadow: 0 0 12px rgba(255, 0, 0, 0.45);
+    .glitch { 
+      font-family: 'Orbitron', sans-serif; 
+      animation: glitch 3s infinite;
+    }
+    @keyframes glitch {
+      0%, 100% { text-shadow: 1px 0 red, -1px 0 cyan; }
+      50% { text-shadow: -1px -1px cyan, 1px 1px red; }
     }
 
-    .hero-sub {
-      background: linear-gradient(45deg, #ff3131, #ffb200, #ffe97f);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      animation: fire-flow 4s ease infinite;
+    .fire-text { 
+      background: linear-gradient(45deg, #ff0000, #ff7300, #fffb00, #ff0000); 
       background-size: 300% 300%;
+      -webkit-background-clip: text; 
+      -webkit-text-fill-color: transparent;
+      animation: fire-flow 3s ease infinite;
     }
 
     @keyframes fire-flow {
-      0%,100% { background-position: 0% 50%; }
+      0%, 100% { background-position: 0% 50%; }
       50% { background-position: 100% 50%; }
     }
 
+    .upload-btn {
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+
+    #particles-js { 
+      position: fixed; width: 100%; height: 100%;
+      top: 0; left: 0; z-index: 0; opacity: 0.3;
+    }
+
     .stat-card {
-      backdrop-filter: blur(10px);
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      transition: 0.25s ease;
+      backdrop-filter: blur(12px);
+      background: rgba(255, 0, 0, 0.10);
+      border: 1.5px solid rgba(255, 0, 0, 0.25);
+      transition: 0.25s;
     }
 
     .stat-card:hover {
-      border-color: rgba(255, 100, 100, 0.7);
-      transform: translateY(-4px);
-      box-shadow: 0 10px 25px rgba(255, 0, 0, 0.25);
+      border-color: rgba(255,0,0,0.7);
+      transform: translateY(-2px);
     }
 
     .mode-btn {
-      transition: 0.25s ease;
-      border: 2px solid transparent;
+      transition: all 0.3s ease;
+      cursor: pointer;
     }
 
     .mode-btn.selected {
-      border-color: white;
-      box-shadow: 0 0 12px rgba(255, 255, 255, 0.5);
-      transform: scale(1.04);
+      transform: scale(1.02);
+      box-shadow: 0 0 15px currentColor;
     }
   </style>
 </head>
 
-<body class="min-h-screen bg-black flex flex-col items-center px-4 pt-16 pb-24">
+<body class="relative min-h-screen flex flex-col">
+  <div id="particles-js"></div>
 
-  <!-- TITLE -->
-  <h1 class="title text-center text-5xl sm:text-6xl md:text-7xl font-black tracking-tight">
-    ROASTRANK
-  </h1>
+  <main class="relative z-10 flex flex-col items-center w-full px-4 py-8 sm:py-12 md:py-16">
 
-  <!-- SUBTEXT -->
-  <p class="hero-sub text-center text-lg sm:text-xl md:text-2xl font-bold mt-4 max-w-xl">
-    Upload your CV. Get professionally obliterated.
-  </p>
+    <!-- Title - Responsive sizes -->
+    <h1 class="glitch text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-tight text-center leading-tight mb-4">
+      ROASTRANK
+    </h1>
 
-  <p class="text-gray-300 text-sm sm:text-base mt-3 mb-10 text-center max-w-lg">
-    Choose your roast level — quick burns or full humiliation.
-  </p>
+    <p class="fire-text text-base sm:text-lg md:text-xl font-bold mb-2 text-center px-2" style="font-family:'Roboto Mono', monospace;">
+      Upload your CV. Get professionally obliterated.
+    </p>
 
-  <!-- FUNNY STATS -->
-  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full max-w-3xl mb-14">
+    <p class="text-gray-300 text-xs sm:text-sm md:text-base max-w-xl text-center mb-8 px-4">
+      Choose your roast level. Quick or full humiliation.
+    </p>
 
-    <div class="stat-card p-4 rounded-xl text-center">
-      <div class="text-4xl font-black">😵</div>
-      <div class="text-red-400 text-lg font-bold mt-2">83% Regretted Uploading</div>
-    </div>
-
-    <div class="stat-card p-4 rounded-xl text-center">
-      <div class="text-4xl font-black">🔥</div>
-      <div class="text-yellow-400 text-lg font-bold mt-2">4.2s to Emotional Damage</div>
-    </div>
-
-    <div class="stat-card p-4 rounded-xl text-center">
-      <div class="text-4xl font-black">📉</div>
-      <div class="text-cyan-400 text-lg font-bold mt-2">0% CVs Survive Untouched</div>
-    </div>
-
-  </div>
-
-  <!-- MODE SELECT -->
-  <div class="flex flex-col sm:flex-row gap-4 mb-10">
-
-    <button type="button" onclick="setMode('quick')" id="quickBtn"
-      class="mode-btn selected bg-yellow-500 hover:bg-yellow-400 text-black font-bold px-6 py-3 rounded-xl text-lg">
-      ⚡ QUICK ROAST (4 lines)
-    </button>
-
-    <button type="button" onclick="setMode('full')" id="fullBtn"
-      class="mode-btn bg-red-600 hover:bg-red-500 font-bold px-6 py-3 rounded-xl text-lg">
-      🔥 FULL ROAST (compact)
-    </button>
-
-  </div>
-
-  <!-- UPLOAD FORM -->
-  <form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data"
-        class="w-full flex flex-col items-center">
-
-    <input type="hidden" name="mode" id="modeInput" value="quick" />
-
-    <label class="w-full max-w-xs sm:max-w-sm cursor-pointer">
-      <input type="file" name="file" accept=".pdf,.docx,.txt" required class="hidden"
-             onchange="submitForm()">
-
-      <div class="bg-red-600 hover:bg-red-500 text-white font-bold px-6 py-4 rounded-xl text-center shadow-xl">
-        🔥 DROP YOUR CV TO GET ROASTED 🔥
+    <!-- Stats Grid - Stacks on mobile -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 w-full max-w-3xl mb-8 px-2">
+      <div class="stat-card p-3 sm:p-4 rounded-xl text-center">
+        <div class="text-3xl sm:text-4xl font-black">😵</div>
+        <div class="text-red-400 text-sm sm:text-base md:text-lg font-bold mt-2">83% Regretted Uploading</div>
       </div>
-    </label>
-  </form>
 
-  <!-- FOOTER -->
-  <div class="mt-10 text-center">
-    <a href="/leaderboard" class="text-lg underline text-gray-300 hover:text-white">
-      View Global Leaderboard →
+      <div class="stat-card p-3 sm:p-4 rounded-xl text-center">
+        <div class="text-3xl sm:text-4xl font-black">🔥</div>
+        <div class="text-yellow-400 text-sm sm:text-base md:text-lg font-bold mt-2">4.2s to Emotional Damage</div>
+      </div>
+
+      <div class="stat-card p-3 sm:p-4 rounded-xl text-center">
+        <div class="text-3xl sm:text-4xl font-black">📉</div>
+        <div class="text-cyan-400 text-sm sm:text-base md:text-lg font-bold mt-2">0% CVs Survive Untouched</div>
+      </div>
+    </div>
+
+    <!-- Mode Selection - Stacks on mobile -->
+    <div class="flex flex-col sm:flex-row gap-3 mb-6 w-full max-w-md px-2">
+      <button type="button" onclick="setMode('quick')" id="quickBtn" 
+              class="mode-btn selected bg-yellow-600 hover:bg-yellow-500 text-black font-bold px-4 py-3 rounded-xl text-sm sm:text-base md:text-lg shadow-md w-full">
+        ⚡ QUICK ROAST (4 lines)
+      </button>
+      <button type="button" onclick="setMode('full')" id="fullBtn"
+              class="mode-btn bg-red-600 hover:bg-red-500 font-bold px-4 py-3 rounded-xl text-sm sm:text-base md:text-lg shadow-md w-full">
+        🔥 FULL ROAST (compact)
+      </button>
+    </div>
+
+    <!-- Upload Form -->
+    <form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data" class="w-full flex flex-col items-center px-4">
+      <input type="hidden" name="mode" id="modeInput" value="quick" />
+      
+      <label class="w-full max-w-sm cursor-pointer">
+        <input type="file" name="file" accept=".pdf,.docx,.txt" required class="hidden" onchange="submitForm()" />
+        
+        <div class="upload-btn bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-500 hover:to-orange-500 
+                    text-white font-black text-base sm:text-lg md:text-xl py-4 px-6 rounded-2xl text-center shadow-2xl">
+          🚀 UPLOAD CV
+        </div>
+      </label>
+    </form>
+
+    <!-- Loading State -->
+    <div id="loadingState" class="hidden mt-8 text-center">
+      <div class="text-5xl sm:text-6xl mb-4 animate-spin">🔥</div>
+      <p class="text-lg sm:text-xl font-bold text-yellow-400">Preparing your roast...</p>
+      <p class="text-xs sm:text-sm text-gray-400 mt-2">This may take 10-15 seconds</p>
+    </div>
+
+    <!-- Leaderboard Link -->
+    <a href="/leaderboard" class="mt-8 text-base sm:text-lg md:text-xl underline hover:text-red-400 transition font-bold">
+      🏆 View Global Leaderboard
     </a>
-  </div>
 
-  <!-- JS -->
+  </main>
+
   <script>
+    // Particles
+    particlesJS("particles-js", {
+      particles: {
+        number: { value: 60, density: { enable: true, value_area: 800 } },
+        color: { value: ["#ff0077", "#ffdd00", "#00ffff"] },
+        opacity: { value: 0.5 },
+        size: { value: 3, random: true },
+        line_linked: { enable: false },
+        move: { enable: true, speed: 1 }
+      }
+    });
+
+    // Mode selection
     function setMode(mode) {
-      document.getElementById("modeInput").value = mode;
-
-      document.getElementById("quickBtn").classList.remove("selected");
-      document.getElementById("fullBtn").classList.remove("selected");
-
-      if (mode === "quick") {
-        quickBtn.classList.add("selected");
+      document.getElementById('modeInput').value = mode;
+      
+      const quickBtn = document.getElementById('quickBtn');
+      const fullBtn = document.getElementById('fullBtn');
+      
+      if (mode === 'quick') {
+        quickBtn.classList.add('selected');
+        fullBtn.classList.remove('selected');
       } else {
-        fullBtn.classList.add("selected");
+        fullBtn.classList.add('selected');
+        quickBtn.classList.remove('selected');
       }
     }
 
+    // Form submission
     function submitForm() {
-      document.getElementById("uploadForm").submit();
+      document.getElementById('loadingState').classList.remove('hidden');
+      document.getElementById('uploadForm').submit();
     }
   </script>
 
