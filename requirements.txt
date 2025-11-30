@@ -1,9 +1,8 @@
 fastapi
 uvicorn
 python-multipart
-Jinja2
+jinja2
 python-dotenv
 PyPDF2
 python-docx
 openai>=1.0.0
-pyjson5
