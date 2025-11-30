@@ -213,7 +213,7 @@ RESUME:
 
     # ---------------- CALL GEMINI ----------------
     try:
-        model = genai.GenerativeModel("gemini-2.5-flash")
+        model = genai.GenerativeModel("gemini-2.0-flash-exp")
         response = model.generate_content(prompt)
         raw = response.text.strip()
         data = extract_json(raw)
