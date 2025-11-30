@@ -1,28 +1,62 @@
 <!DOCTYPE html>
-<html>
+<html lang="en" class="bg-black text-white">
 <head>
-    <title>RoastRank - Leaderboard</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <meta charset="UTF-8">
+    <title>🔥 GLOBAL ROASTRANK</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        .card {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.15);
+            backdrop-filter: blur(12px);
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .glow {
+            text-shadow: 0 0 20px rgba(255,60,60,0.8);
+        }
+    </style>
 </head>
-<body>
 
-<div class="container">
+<body class="px-6 py-10">
 
-    <h1>🔥 GLOBAL ROASTRANK</h1>
+    <!-- TITLE -->
+    <h1 class="text-5xl sm:text-6xl font-black text-center glow mb-10">
+        🔥 GLOBAL ROASTRANK
+    </h1>
 
-    {% for row in roasts %}
-    <div class="lb-card">
-        <h2>#{{ loop.index }}</h2>
-        <h3>{{ row[1] }}</h3>
-        <p><strong>{{ row[0] }}/100</strong></p>
-        <p>{{ row[2] }}</p>
-        <small>{{ row[3] }}</small>
+    <div class="max-w-3xl mx-auto">
+
+        {% for score, one_line, detailed, created_at, name in roasts %}
+        <div class="card">
+
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="text-3xl font-bold">#{{ loop.index }}</h2>
+                <span class="text-4xl font-black text-yellow-400">{{ score }}</span>
+            </div>
+
+            <p class="text-lg font-bold text-pink-400 mb-1">{{ name }}</p>
+
+            <p class="text-sm text-gray-400 mb-3">{{ created_at }}</p>
+
+            <p class="text-base font-mono">{{ one_line }}</p>
+
+            {% if detailed %}
+            <p class="text-sm mt-3 opacity-70">{{ detailed }}</p>
+            {% endif %}
+
+        </div>
+        {% endfor %}
+
+        <!-- BACK LINK -->
+        <div class="text-center mt-10">
+            <a href="/" class="text-xl underline hover:text-red-400">
+                ← Go Back
+            </a>
+        </div>
     </div>
-    {% endfor %}
-
-    <a href="/" class="btn">Go Back</a>
-
-</div>
 
 </body>
 </html>

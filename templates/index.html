@@ -5,16 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1"/>
   <title>RoastRank — Get Professionally Destroyed</title>
   
-  <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@800;900&family=Roboto+Mono:wght@700&display=swap" rel="stylesheet">
 
-  <!-- Particles -->
   <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
 
   <style>
+
+    /* Glitch Title */
     .glitch { 
       font-family: 'Orbitron', sans-serif; 
       animation: glitch 3s infinite;
@@ -25,6 +24,7 @@
       50% { text-shadow: -2px -2px cyan, 2px 2px red, 0 0 16px rgba(255,255,0,0.7); }
     }
 
+    /* Animated Fire Text */
     .fire-text { 
       background: linear-gradient(45deg, #ff0000, #ff7300, #fffb00, #ff0000); 
       background-size: 300% 300%;
@@ -32,12 +32,12 @@
       -webkit-text-fill-color: transparent;
       animation: fire-flow 3s ease infinite;
     }
-
     @keyframes fire-flow {
       0%, 100% { background-position: 0% 50%; }
       50% { background-position: 100% 50%; }
     }
 
+    /* Upload Button Glow */
     .upload-btn {
       position: relative;
       overflow: hidden;
@@ -59,134 +59,154 @@
       width: 300px; height: 300px;
     }
 
+    /* Floating particles background */
     #particles-js { 
       position: fixed; width: 100%; height: 100%;
       top: 0; left: 0; z-index: 0; opacity: 0.4;
     }
 
+    /* Stat Cards */
     .stat-card {
       backdrop-filter: blur(12px);
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 0, 0, 0.10);
+      border: 1.5px solid rgba(255, 0, 0, 0.25);
+      transition: 0.25s;
+    }
+    .stat-card:hover {
+      border-color: rgba(255,0,0,0.7);
+      transform: translateY(-4px);
+      box-shadow: 0 8px 20px rgba(255,0,0,0.25);
+    }
+
+    /* Mode Buttons */
+    .mode-btn {
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+    .mode-btn.selected {
+      transform: scale(1.05);
+      box-shadow: 0 0 20px currentColor;
       transition: 0.25s;
     }
 
-    .stat-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.7);
-    }
-
-    .loading-spin { animation: spin 1.2s linear infinite; }
-    @keyframes spin { to { transform: rotate(360deg);} }
   </style>
 </head>
 
 <body class="relative min-h-screen flex flex-col">
+
+  <!-- Background Particles -->
   <div id="particles-js"></div>
 
   <main class="relative z-10 flex flex-col items-center w-full px-4 pt-16 pb-24">
 
+    <!-- TITLE -->
     <h1 class="glitch text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-tight text-center leading-tight">
       ROASTRANK
     </h1>
 
+    <!-- Subtitle -->
     <p class="fire-text text-lg sm:text-xl md:text-2xl font-bold mt-4 mb-3 text-center" style="font-family:'Roboto Mono', monospace;">
       Upload your CV. Get professionally obliterated.
     </p>
 
-    <p class="text-gray-300 text-sm sm:text-base max-w-xl text-center mb-10">
-      One compact, savage + helpful review. No settings. Just vibes.
+    <p class="text-gray-300 text-sm sm:text-base max-w-xl text-center mb-12">
+      Choose your roast level. Quick or full humiliation.
     </p>
 
-    <!-- FUNNY STATS -->
+    <!-- Funny Stats -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full max-w-3xl mb-12">
 
       <div class="stat-card p-4 rounded-xl text-center">
-        <div class="text-3xl sm:text-4xl">😵</div>
-        <div class="text-red-400 text-sm sm:text-base font-bold mt-2">
-          83% users regretted uploading
-        </div>
+        <div class="text-4xl font-black">😵</div>
+        <div class="text-red-400 text-lg font-bold mt-2">83% Regretted Uploading</div>
       </div>
 
       <div class="stat-card p-4 rounded-xl text-center">
-        <div class="text-3xl sm:text-4xl">🔥</div>
-        <div class="text-yellow-400 text-sm sm:text-base font-bold mt-2">
-          4.2s to emotional damage
-        </div>
+        <div class="text-4xl font-black">🔥</div>
+        <div class="text-yellow-400 text-lg font-bold mt-2">4.2s to Emotional Damage</div>
       </div>
 
       <div class="stat-card p-4 rounded-xl text-center">
-        <div class="text-3xl sm:text-4xl">📉</div>
-        <div class="text-cyan-400 text-sm sm:text-base font-bold mt-2">
-          0% CVs survive untouched
-        </div>
+        <div class="text-4xl font-black">📉</div>
+        <div class="text-cyan-400 text-lg font-bold mt-2">0% CVs Survive Untouched</div>
       </div>
 
     </div>
+
+    <!-- MODE TOGGLE -->
+    <div class="flex flex-col sm:flex-row gap-4 mb-6 text-center">
+
+      <button 
+        type="button"
+        id="quickBtn"
+        onclick="setMode('quick')"
+        class="px-6 py-3 font-bold rounded-xl bg-yellow-600 text-black shadow-md mode-btn selected">
+        ⚡ QUICK ROAST (4 lines)
+      </button>
+
+      <button 
+        type="button"
+        id="fullBtn"
+        onclick="setMode('full')"
+        class="px-6 py-3 font-bold rounded-xl bg-red-600 shadow-md mode-btn">
+        🔥 FULL ROAST (compact)
+      </button>
+
+    </div>
+
+    <p id="modeWarning" class="text-sm text-gray-300 mb-8 text-center hidden">
+      ⚠️ Full roast takes 1–2 seconds longer.
+    </p>
 
     <!-- UPLOAD FORM -->
     <form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data" class="w-full flex flex-col items-center">
+      <input type="hidden" name="mode" id="modeInput" value="quick" />
+      
       <label class="w-full max-w-xs sm:max-w-sm cursor-pointer">
-        <input
-          type="file"
-          name="file"
-          accept=".pdf,.docx,.txt"
-          required
-          class="hidden"
-          onchange="submitForm()"
-        />
+        <input type="file" name="file" accept=".pdf,.docx,.txt" required class="hidden"
+          onchange="submitForm()"/>
 
-        <div id="cta" class="upload-btn animate-pulse bg-gradient-to-r from-red-600 via-orange-600 to-red-600 text-white font-black text-xl sm:text-2xl md:text-3xl py-4 rounded-2xl shadow-xl border-4 border-yellow-500 text-center">
+        <div class="upload-btn w-full text-center bg-gradient-to-r from-red-600 to-yellow-500 text-black py-4 px-6 rounded-2xl font-black text-xl shadow-lg">
           🔥 UPLOAD CV 🔥
         </div>
       </label>
-      <p class="text-gray-500 text-xs sm:text-sm mt-3">
-        PDF • DOCX • TXT • Max 10 per day
+
+      <p class="text-gray-400 text-xs mt-2">
+        PDF • DOCX • TXT • Max 10 CVs/day
       </p>
     </form>
 
-    <!-- LOADING -->
-    <div id="loading" class="hidden mt-16 flex flex-col items-center gap-4">
-      <div class="loading-spin text-5xl sm:text-6xl">🔥</div>
-      <div class="text-2xl sm:text-3xl font-black text-red-500 animate-pulse">
-        SCANNING…
-      </div>
-      <div class="text-sm sm:text-base text-yellow-400 animate-pulse text-center">
-        Converting your “proficient in MS Office” into emotional damage…
-      </div>
-    </div>
-
-    <!-- Leaderboard Link -->
-    <a href="/leaderboard" class="mt-10 text-lg sm:text-xl underline hover:text-red-400 transition font-bold">
+    <!-- HALL OF SHAME -->
+    <a href="/leaderboard" class="text-lg mt-10 underline hover:text-red-400 transition">
       View the Hall of Shame →
     </a>
 
-    <!-- Footer -->
-    <p class="text-gray-500 text-xs sm:text-sm mt-10 text-center max-w-sm">
-      ⚠️ Brutally honest feedback ahead. If you're emotionally fragile, maybe… don’t.
-    </p>
-
   </main>
 
+  <!-- Mode Script -->
   <script>
-    function submitForm() {
-      const form = document.getElementById('uploadForm');
-      document.getElementById('cta').classList.add('hidden');
-      document.getElementById('loading').classList.remove('hidden');
-      form.submit();
+    function setMode(mode) {
+      document.getElementById("modeInput").value = mode;
+
+      const quickBtn = document.getElementById("quickBtn");
+      const fullBtn = document.getElementById("fullBtn");
+      const warning = document.getElementById("modeWarning");
+
+      if (mode === "quick") {
+          quickBtn.classList.add("selected");
+          fullBtn.classList.remove("selected");
+          warning.classList.add("hidden");
+      } else {
+          fullBtn.classList.add("selected");
+          quickBtn.classList.remove("selected");
+          warning.classList.remove("hidden");
+      }
     }
 
-    particlesJS("particles-js", {
-      particles: {
-        number: { value: 70 },
-        size: { value: 2 },
-        color: { value: ["#ff0000", "#ffcc00", "#ffffff"] },
-        move: { speed: 1 }
-      },
-      interactivity: {
-        events: { onhover: { enable: false }, onclick: { enable: false } }
-      }
-    });
+    function submitForm() {
+      document.getElementById("uploadForm").submit();
+    }
   </script>
+
 </body>
 </html>
