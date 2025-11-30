@@ -6,3 +6,4 @@ PyPDF2
 google-generativeai
 python-dotenv
 json5
+python-multipart
