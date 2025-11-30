@@ -14,7 +14,6 @@ from PyPDF2 import PdfReader
 from docx import Document
 import tempfile
 import json
-import json5
 import re
 
 # ------------------ INIT ------------------
@@ -54,35 +53,45 @@ CREATE TABLE IF NOT EXISTS roasts (
 conn.commit()
 
 # ------------------ JSON EXTRACTION ------------------
-def extract_json(raw):
-    raw = re.sub(r"```.*?```", "", raw, flags=re.DOTALL)
-    matches = re.findall(r"\{.*?\}", raw, flags=re.DOTALL)
+def extract_json(raw: str):
+    """
+    Extract JSON from an LLM response without using json5.
+    Cleans trailing commas and loose JSON.
+    """
+    raw = raw.replace("```json", "").replace("```", "")
+
+    # Find largest {...} block
+    matches = re.findall(r"\{[\s\S]*?\}", raw)
     if not matches:
-        raise ValueError("No JSON found")
-    candidate = max(matches, key=len)
-    try:
-        return json.loads(candidate)
-    except:
-        return json5.loads(candidate)
+        raise ValueError("No JSON found in model output.")
+    
+    block = max(matches, key=len)
+
+    # Fix common LLM JSON mistakes
+    block = re.sub(r",\s*}", "}", block)         # trailing commas
+    block = re.sub(r",\s*\]", "]", block)
+
+    return json.loads(block)
 
 # ------------------ NAME EXTRACTION ------------------
 def extract_name_from_text(text):
-    prompt = f"""
-Extract ONLY the candidate's full name from the resume text.
+    try:
+        resp = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{
+                "role": "user",
+                "content": f"""
+Extract ONLY the candidate's real full name from the resume text.
 
-RULES:
-- Return ONLY the name (first + last).
-- No JSON.
-- No commentary.
+Rules:
+- ONLY return name.
 - If unsure → return "Anonymous".
+- No commentary.
 
 Resume:
 {text[:3000]}
 """
-    try:
-        resp = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[{"role": "user", "content": prompt}],
+            }]
         )
         name = resp.choices[0].message.content.strip()
         if len(name.split()) > 6:
@@ -108,7 +117,6 @@ async def leaderboard(request: Request):
         "roasts": roasts
     })
 
-# ------------------ UPLOAD CV ------------------
 @app.post("/upload")
 async def upload_cv(
     request: Request,
@@ -119,7 +127,6 @@ async def upload_cv(
     ip = request.client.host
     today = datetime.now().strftime("%Y-%m-%d")
 
-    # ---- RATE LIMIT ----
     cursor.execute("SELECT count FROM daily_limits WHERE ip=? AND date=?", (ip, today))
     row = cursor.fetchone()
     if row and row[0] >= 10:
@@ -128,7 +135,6 @@ async def upload_cv(
     content = await file.read()
     file_hash = hashlib.md5(content).hexdigest()
 
-    # ---- If duplicate ----
     existing = cursor.execute("""
         SELECT score, one_line, overview, detailed, strengths, improvements, fun_obs, name
         FROM roasts WHERE file_hash=?
@@ -147,17 +153,17 @@ async def upload_cv(
             "name": existing[7]
         })
 
-    # ---------------- TEXT EXTRACTION ----------------
+    # ----- extract resume text -----
     text = ""
-    fname = file.filename.lower()
+    fn = file.filename.lower()
 
     try:
-        if fname.endswith(".pdf"):
+        if fn.endswith(".pdf"):
             reader = PdfReader(io.BytesIO(content))
             for p in reader.pages:
                 text += (p.extract_text() or "") + "\n"
 
-        elif fname.endswith(".docx"):
+        elif fn.endswith(".docx"):
             with tempfile.NamedTemporaryFile(delete=False) as tmp:
                 tmp.write(content)
                 path = tmp.name
@@ -165,39 +171,33 @@ async def upload_cv(
             text = "\n".join(p.text for p in doc.paragraphs)
             os.unlink(path)
 
-        elif fname.endswith(".txt"):
+        elif fn.endswith(".txt"):
             text = content.decode()
 
-        else:
-            return HTMLResponse("<h1>Unsupported file type</h1>")
     except:
-        return HTMLResponse("<h1>Could not read file</h1>")
+        return HTMLResponse("<h1>File could not be read</h1>")
 
     text = text[:15000]
 
-    # ---------------- NAME ----------------
+    # ---- NAME ----
     name = extract_name_from_text(text)
 
-    # ---------------- PROMPT ----------------
+    # ------------ PROMPT ------------
     if mode == "quick":
         prompt = f"""
-You are ROASTRANK. Give a very short roast.
-
-Return ONLY this JSON:
+Return ONLY JSON:
 {{
  "score": int,
  "one_line": str
 }}
 
-Max 4 lines. No long paragraphs.
+Max 4 lines roast.
 
 Resume:
 {text}
 """
     else:
         prompt = f"""
-You are ROASTRANK — savage but concise.
-
 Return ONLY JSON:
 {{
  "score": int,
@@ -209,17 +209,17 @@ Return ONLY JSON:
  "fun_observation": str
 }}
 
-Each field max 4–6 lines.
+Max 4–6 lines per section.
 
 Resume:
 {text}
 """
 
-    # ---------------- AI CALL ----------------
+    # ------------ CALL OPENAI ------------
     try:
         resp = client.chat.completions.create(
             model="gpt-4o-mini",
-            messages=[{"role": "user", "content": prompt}],
+            messages=[{"role": "user", "content": prompt}]
         )
         raw = resp.choices[0].message.content
         data = extract_json(raw)
@@ -229,7 +229,7 @@ Resume:
         if mode == "quick":
             data = {
                 "score": 60,
-                "one_line": "Your CV was so confusing even the AI gave up."
+                "one_line": "Your CV confused the AI."
             }
         else:
             data = {
@@ -244,7 +244,7 @@ Resume:
 
     score = data.get("score", 70)
 
-    # ---------------- SAVE ----------------
+    # ------------ SAVE ------------
     cursor.execute("""
         INSERT INTO roasts (
             file_hash, score, one_line, overview, detailed,
