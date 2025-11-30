@@ -1,115 +1,38 @@
 <!DOCTYPE html>
-<html lang="en" class="bg-black text-white min-h-screen">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <title>RoastRank — Mission Debrief</title>
-
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
-
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@800;900&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
-
-  <style>
-    #particles-js {
-      position: fixed;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 0;
-      opacity: 0.45;
-    }
-
-    .glitch {
-      animation: glitch 3s infinite;
-      text-shadow: 0 0 16px red;
-    }
-    @keyframes glitch {
-      0%,100% { text-shadow: 2px 0 red, -2px 0 cyan; }
-      50% { text-shadow: -2px -2px cyan, 2px 2px red; }
-    }
-
-    .nebula-box {
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.12);
-      backdrop-filter: blur(12px);
-      box-shadow: 0 0 20px rgba(255,0,120,0.25);
-    }
-
-    .section-title {
-      font-family: 'Orbitron', sans-serif;
-    }
-  </style>
+    <title>RoastRank - Results</title>
+    <link rel="stylesheet" href="/static/style.css" />
 </head>
+<body>
 
-<body class="relative min-h-screen overflow-x-hidden">
+<div class="container">
 
-  <div id="particles-js"></div>
-  <script>
-    particlesJS("particles-js", {
-      particles: {
-        number: { value: 90 },
-        opacity: { value: 0.5 },
-        size: { value: 3, random: true },
-        color: { value: ["#ff0077", "#ffdd55", "#00ffff"] }
-      }
-    });
-  </script>
+    <h1>🔥 ROAST COMPLETE</h1>
+    <h2>Candidate: {{ name }}</h2>
 
-  <div class="relative z-10 max-w-4xl mx-auto px-5 sm:px-10 py-20 space-y-12">
-
-    <h1 class="glitch text-center text-5xl sm:text-6xl md:text-7xl font-black tracking-tight">
-      ROAST COMPLETE
-    </h1>
-
-    <div class="text-center">
-      <p class="text-gray-300 text-sm sm:text-base font-mono">Candidate: <span class="text-white font-bold">{{ name }}</span></p>
-      <div class="text-5xl sm:text-6xl md:text-7xl font-black text-yellow-400 animate-pulse mt-2"
-           style="font-family:'Orbitron',sans-serif;">
-        {{ score }}/100
-      </div>
-      <p class="text-gray-400 text-sm sm:text-base mt-2 font-mono">Evaluation generated successfully</p>
+    <div class="score-box">
+        <h1>{{ score }}/100</h1>
+        <p>Evaluation generated successfully</p>
     </div>
 
-    <div class="nebula-box rounded-3xl p-6 sm:p-10 space-y-12 font-mono">
-
-      <div>
-        <h2 class="section-title text-2xl sm:text-3xl text-pink-400 mb-2">ONE-LINE ROAST</h2>
-        <p class="text-base sm:text-lg whitespace-pre-line opacity-90">{{ one_line }}</p>
-      </div>
-
-      <div>
-        <h2 class="section-title text-2xl sm:text-3xl text-yellow-400 mb-2">OVERVIEW</h2>
-        <p class="text-base sm:text-lg whitespace-pre-line opacity-90">{{ overview }}</p>
-      </div>
-
-      <div>
-        <h2 class="section-title text-2xl sm:text-3xl text-red-400 mb-2">FULL ROAST</h2>
-        <p class="text-base sm:text-lg whitespace-pre-line opacity-90">{{ detailed }}</p>
-      </div>
-
-      <div>
-        <h2 class="section-title text-2xl sm:text-3xl text-green-400 mb-2">STRENGTHS</h2>
-        <p class="text-base sm:text-lg whitespace-pre-line opacity-90">{{ strengths }}</p>
-      </div>
-
-      <div>
-        <h2 class="section-title text-2xl sm:text-3xl text-blue-400 mb-2">IMPROVEMENTS</h2>
-        <p class="text-base sm:text-lg whitespace-pre-line opacity-90">{{ improvements }}</p>
-      </div>
-
-      <div>
-        <h2 class="section-title text-2xl sm:text-3xl text-cyan-300 mb-2">FUN OBSERVATION</h2>
-        <p class="text-base sm:text-lg whitespace-pre-line opacity-90">{{ fun_obs }}</p>
-      </div>
-
+    <div class="section">
+        <h3>ONE-LINE ROAST</h3>
+        <p>{{ one_line }}</p>
     </div>
 
-    <div class="flex flex-col sm:flex-row justify-center gap-6 pt-6">
-      <a href="/" class="text-xl underline hover:text-pink-400 transition text-center">← Roast Another</a>
-      <a href="/leaderboard" class="text-xl underline hover:text-green-400 transition text-center">View Leaderboard →</a>
-    </div>
+    {% if overview %}
+    <div class="section"><h3>OVERVIEW</h3><p>{{ overview }}</p></div>
+    <div class="section"><h3>FULL ROAST</h3><p>{{ detailed }}</p></div>
+    <div class="section"><h3>STRENGTHS</h3><p>{{ strengths }}</p></div>
+    <div class="section"><h3>IMPROVEMENTS</h3><p>{{ improvements }}</p></div>
+    <div class="section"><h3>FUN OBSERVATION</h3><p>{{ fun_obs }}</p></div>
+    {% endif %}
 
-  </div>
+    <a href="/" class="btn">Roast Another CV</a>
+    <a href="/leaderboard" class="btn-secondary">View Leaderboard</a>
+
+</div>
 
 </body>
 </html>
