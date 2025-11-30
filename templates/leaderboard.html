@@ -17,22 +17,21 @@
 
 <body class="px-4 py-10 md:px-10">
     
-    <!-- TITLE -->
     <h1 class="text-5xl sm:text-6xl md:text-7xl font-black text-center mb-12 glow
                bg-gradient-to-r from-yellow-400 to-red-600 bg-clip-text text-transparent">
         GLOBAL ROASTRANK
     </h1>
 
-    <!-- LEADERBOARD LIST -->
     <div class="max-w-4xl mx-auto space-y-8 pb-20">
-        {% for score, roast, time in roasts %}
+        {% for score, roast, time, name in roasts %}
         <div class="card rounded-3xl p-6 sm:p-8">
 
-            <!-- RANK + SCORE -->
             <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-2">
                 <span class="text-4xl sm:text-5xl font-black">#{{ loop.index }}</span>
 
-                <span class="text-5xl sm:text-6xl font-black 
+                <div class="text-right">
+                    <p class="text-lg font-bold text-red-300">{{ name }}</p>
+                    <span class="text-5xl sm:text-6xl font-black 
                              {% if loop.index0 == 0 %}
                                 text-yellow-400
                              {% elif loop.index0 < 3 %}
@@ -40,11 +39,11 @@
                              {% else %}
                                 text-gray-300
                              {% endif %}">
-                    {{ score }}
-                </span>
+                        {{ score }}
+                    </span>
+                </div>
             </div>
 
-            <!-- ROAST TEXT -->
             <pre class="text-sm sm:text-base md:text-lg leading-relaxed whitespace-pre-wrap opacity-90 font-mono">
 {{ roast }}
             </pre>
@@ -54,7 +53,6 @@
         {% endfor %}
     </div>
 
-    <!-- BACK BUTTON -->
     <div class="fixed bottom-6 left-1/2 -translate-x-1/2">
         <a href="/" class="text-xl sm:text-2xl underline hover:text-red-400 transition font-bold">
             ← Roast Another
