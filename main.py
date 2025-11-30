@@ -16,27 +16,33 @@ import tempfile
 import json
 import re
 
-# ------------------ RESET DB ON DEPLOY (HF fix) ------------------
-if os.getenv("HF_SPACE") is not None:
-    if os.path.exists("roasts.db"):
-        print("🧹 Removing roasts.db to auto-recreate schema...")
-        os.remove("roasts.db")
+# ============================================================
+# 🔥 DELETE OLD DB EACH DEPLOY (HuggingFace temp storage reset)
+# ============================================================
+if os.path.exists("roasts.db"):
+    print("🧹 Removing existing roasts.db...")
+    os.remove("roasts.db")
 
-# ------------------ INIT ------------------
+# ============================================================
+# INIT
+# ============================================================
 load_dotenv()
 
 api_key = os.getenv("OPENAI_API_KEY")
 client = OpenAI(api_key=api_key) if api_key else None
+
 if api_key:
     print("✅ OpenAI API key loaded")
 else:
-    print("❌ No OpenAI API key found!")
+    print("❌ No OPENAI_API_KEY found!")
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
-# ------------------ DATABASE SETUP ------------------
+# ============================================================
+# DATABASE
+# ============================================================
 conn = sqlite3.connect("roasts.db", check_same_thread=False)
 cursor = conn.cursor()
 
@@ -44,6 +50,7 @@ cursor.execute("""
 CREATE TABLE IF NOT EXISTS roasts (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   file_hash TEXT UNIQUE,
+  name TEXT DEFAULT 'Anonymous',
   score INTEGER,
   one_line TEXT,
   overview TEXT,
@@ -51,25 +58,39 @@ CREATE TABLE IF NOT EXISTS roasts (
   strengths TEXT,
   improvements TEXT,
   fun_obs TEXT,
-  name TEXT DEFAULT 'Anonymous',
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+)
+""")
+
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS daily_limits (
+  ip TEXT,
+  date TEXT,
+  count INTEGER,
+  PRIMARY KEY(ip, date)
 )
 """)
 
 conn.commit()
 
-# ------------------ JSON CLEANER ------------------
+# ============================================================
+# JSON CLEANER (NO json5 REQUIRED)
+# ============================================================
 def extract_json(raw: str):
     raw = raw.replace("```json", "").replace("```", "")
-    match = re.search(r"\{[\s\S]*\}", raw)
-    if not match:
-        raise ValueError("No JSON found")
-    block = match.group()
+    blocks = re.findall(r"\{[\s\S]*?\}", raw)
+    if not blocks:
+        raise ValueError("No JSON detected")
+
+    block = max(blocks, key=len)
     block = re.sub(r",\s*}", "}", block)
     block = re.sub(r",\s*\]", "]", block)
+
     return json.loads(block)
 
-# ------------------ NAME EXTRACTION ------------------
+# ============================================================
+# NAME EXTRACTION
+# ============================================================
 def extract_name_from_text(text):
     try:
         resp = client.chat.completions.create(
@@ -77,22 +98,24 @@ def extract_name_from_text(text):
             messages=[{
                 "role": "user",
                 "content": f"""
-Extract ONLY the candidate's real full name from this resume.
-If unsure, return "Anonymous". No commentary.
-
+Extract ONLY the real full name of the candidate from this resume.
+If unsure → return "Anonymous".
 Resume:
 {text[:3000]}
 """
             }]
         )
         name = resp.choices[0].message.content.strip()
+
         if len(name.split()) > 6:
             return "Anonymous"
         return name
     except:
         return "Anonymous"
 
-# ------------------ ROUTES ------------------
+# ============================================================
+# ROUTES
+# ============================================================
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
@@ -100,8 +123,11 @@ async def home(request: Request):
 @app.get("/leaderboard", response_class=HTMLResponse)
 async def leaderboard(request: Request):
     roasts = cursor.execute("""
-        SELECT score, name, one_line, created_at
-        FROM roasts ORDER BY score DESC LIMIT 50
+        SELECT 
+            name, score, one_line, overview, detailed, strengths, improvements, fun_obs, created_at
+        FROM roasts
+        ORDER BY score DESC
+        LIMIT 50
     """).fetchall()
 
     return templates.TemplateResponse("leaderboard.html", {
@@ -109,35 +135,50 @@ async def leaderboard(request: Request):
         "roasts": roasts
     })
 
+# ============================================================
+# UPLOAD & ROAST
+# ============================================================
 @app.post("/upload")
 async def upload_cv(
     request: Request,
     file: UploadFile = File(...),
     mode: str = Form("quick")
 ):
+
+    ip = request.client.host
+    today = datetime.now().strftime("%Y-%m-%d")
+
+    # Daily 10-upload limit
+    cursor.execute("SELECT count FROM daily_limits WHERE ip=? AND date=?", (ip, today))
+    row = cursor.fetchone()
+    if row and row[0] >= 10:
+        return HTMLResponse("<h1 style='color:red;text-align:center;'>Daily Limit Reached</h1>")
+
     content = await file.read()
     file_hash = hashlib.md5(content).hexdigest()
 
-    # ----- Check cache -----
-    cached = cursor.execute("""
+    # Check previous roast
+    existing = cursor.execute("""
         SELECT score, one_line, overview, detailed, strengths, improvements, fun_obs, name
         FROM roasts WHERE file_hash=?
     """, (file_hash,)).fetchone()
 
-    if cached:
+    if existing:
         return templates.TemplateResponse("result.html", {
             "request": request,
-            "score": cached[0],
-            "one_line": cached[1],
-            "overview": cached[2],
-            "detailed": cached[3],
-            "strengths": cached[4],
-            "improvements": cached[5],
-            "fun_obs": cached[6],
-            "name": cached[7]
+            "score": existing[0],
+            "one_line": existing[1],
+            "overview": existing[2],
+            "detailed": existing[3],
+            "strengths": existing[4],
+            "improvements": existing[5],
+            "fun_obs": existing[6],
+            "name": existing[7]
         })
 
-    # ----- Extract text -----
+    # ============================================================
+    # READ TEXT FROM FILE
+    # ============================================================
     text = ""
     fn = file.filename.lower()
 
@@ -146,6 +187,7 @@ async def upload_cv(
             reader = PdfReader(io.BytesIO(content))
             for p in reader.pages:
                 text += (p.extract_text() or "") + "\n"
+
         elif fn.endswith(".docx"):
             with tempfile.NamedTemporaryFile(delete=False) as tmp:
                 tmp.write(content)
@@ -153,50 +195,55 @@ async def upload_cv(
             doc = Document(path)
             text = "\n".join(p.text for p in doc.paragraphs)
             os.unlink(path)
+
         elif fn.endswith(".txt"):
             text = content.decode()
+        else:
+            return HTMLResponse("<h1>Unsupported format</h1>")
     except:
-        return HTMLResponse("<h1>Error reading file</h1>")
+        return HTMLResponse("<h1>File read error</h1>")
 
     text = text[:15000]
 
-    # ----- Extract name -----
+    # ============================================================
+    # EXTRACT NAME
+    # ============================================================
     name = extract_name_from_text(text)
 
-    # ----- Build prompt -----
+    # ============================================================
+    # BUILD PROMPT
+    # ============================================================
     if mode == "quick":
         prompt = f"""
-Return ONLY JSON:
+Return JSON ONLY:
 {{
- "score": 50,
- "one_line": "string"
+ "score": int,
+ "one_line": str
 }}
-
-ONE-LINE roast only.
 
 Resume:
 {text}
 """
     else:
         prompt = f"""
-Return ONLY JSON:
+Return JSON ONLY:
 {{
- "score": 50,
- "one_line": "string",
- "overview": "string",
- "detailed": "string",
- "strengths": "string",
- "improvements": "string",
- "fun_obs": "string"
+ "score": int,
+ "one_line": str,
+ "overview": str,
+ "detailed": str,
+ "strengths": str,
+ "improvements": str,
+ "fun_obs": str
 }}
-
-Each field must be max 3–5 lines.
 
 Resume:
 {text}
 """
 
-    # ----- Generate roast -----
+    # ============================================================
+    # CALL OPENAI
+    # ============================================================
     try:
         resp = client.chat.completions.create(
             model="gpt-4o-mini",
@@ -206,49 +253,62 @@ Resume:
         data = extract_json(raw)
 
     except Exception as e:
-        print("LLM ERROR:", e)
-        data = {
-            "score": 60,
-            "one_line": "Your CV confused the AI.",
-            "overview": "",
-            "detailed": "",
-            "strengths": "",
-            "improvements": "",
-            "fun_obs": ""
-        }
+        print("❌ ERROR:", e)
+        if mode == "quick":
+            data = {
+                "score": 60,
+                "one_line": "Your CV confused the AI."
+            }
+        else:
+            data = {
+                "score": 65,
+                "one_line": "Your CV confused the AI.",
+                "overview": "",
+                "detailed": "",
+                "strengths": "",
+                "improvements": "",
+                "fun_obs": ""
+            }
 
-    # ------------------ APPLY OPTION C SCORE ------------------
-    orig = data.get("score", 60)
-    roast_score = 70 + int((orig % 25))  # always 70–95
+    score = data.get("score", 70)
 
-    # ------------------ SAVE TO DB ------------------
+    # ============================================================
+    # SAVE TO DB
+    # ============================================================
     cursor.execute("""
         INSERT INTO roasts (
-            file_hash, score, one_line, overview, detailed,
-            strengths, improvements, fun_obs, name
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            file_hash, name, score, one_line, overview, detailed,
+            strengths, improvements, fun_obs
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, (
-        file_hash,
-        roast_score,
+        file_hash, name, score,
         data.get("one_line", ""),
         data.get("overview", ""),
         data.get("detailed", ""),
         data.get("strengths", ""),
         data.get("improvements", ""),
-        data.get("fun_obs", ""),
-        name
+        data.get("fun_obs", "")
     ))
+
+    cursor.execute("""
+        INSERT OR REPLACE INTO daily_limits (ip, date, count)
+        VALUES (?, ?, COALESCE((SELECT count FROM daily_limits WHERE ip=? AND date=?), 0)+1)
+    """, (ip, today, ip, today))
 
     conn.commit()
 
+    # ============================================================
+    # RETURN RESULT PAGE
+    # ============================================================
     return templates.TemplateResponse("result.html", {
         "request": request,
-        "score": roast_score,
+        "name": name,
+        "score": score,
         "one_line": data.get("one_line", ""),
         "overview": data.get("overview", ""),
         "detailed": data.get("detailed", ""),
         "strengths": data.get("strengths", ""),
         "improvements": data.get("improvements", ""),
-        "fun_obs": data.get("fun_obs", ""),
-        "name": name
+        "fun_obs": data.get("fun_obs", "")
     })
