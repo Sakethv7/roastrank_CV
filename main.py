@@ -14,17 +14,24 @@ from PyPDF2 import PdfReader
 from docx import Document
 import tempfile
 import json
+import json5
 import re
-
 
 # ------------------ INIT ------------------
 load_dotenv()
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+
+# Try both possible environment variable names
+api_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
+
+if api_key:
+    print(f"✅ API Key found and loaded (length: {len(api_key)})")
+    genai.configure(api_key=api_key)
+else:
+    print("❌ WARNING: No API key found! Set GOOGLE_API_KEY or GEMINI_API_KEY")
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
-
 
 # ------------------ DATABASE ------------------
 conn = sqlite3.connect("roasts.db", check_same_thread=False)
@@ -54,39 +61,28 @@ CREATE TABLE IF NOT EXISTS daily_limits (
 
 conn.commit()
 
+# ------------------ JSON EXTRACTION ------------------
+def extract_json(raw):
+    """Extract the largest JSON block and sanitize using json5."""
+    raw = re.sub(r"```.*?```", "", raw, flags=re.DOTALL)  # remove fences
 
-# ------------------ CLEAN + SAFE JSON EXTRACTOR ------------------
-def extract_json(raw_text: str):
-    """
-    Extract the largest JSON block from model output.
-    Removes code fences and parses using json.loads.
-    """
-    if not raw_text:
-        raise ValueError("Empty model response")
-
-    # Remove ```json ... ``` blocks if present
-    raw_text = re.sub(r"```.*?```", "", raw_text, flags=re.DOTALL)
-
-    # Extract all JSON-looking blocks
-    matches = re.findall(r"\{(?:.|\n)*?\}", raw_text, flags=re.DOTALL)
+    matches = re.findall(r"\{.*?\}", raw, flags=re.DOTALL)
     if not matches:
         raise ValueError("No JSON found")
 
-    candidate = max(matches, key=len)  # choose largest block
+    candidate = max(matches, key=len)
 
     try:
         return json.loads(candidate)
-    except Exception:
-        raise ValueError("Invalid JSON structure")
+    except:
+        return json5.loads(candidate)
 
-
-# ------------------ ROUTES ------------------
-
+# ------------------ HOME ------------------
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
-
+# ------------------ LEADERBOARD ------------------
 @app.get("/leaderboard", response_class=HTMLResponse)
 async def leaderboard(request: Request):
     roasts = cursor.execute(
@@ -94,13 +90,9 @@ async def leaderboard(request: Request):
     ).fetchall()
     return templates.TemplateResponse("leaderboard.html", {"request": request, "roasts": roasts})
 
-
+# ------------------ UPLOAD ------------------
 @app.post("/upload")
-async def upload_cv(
-    request: Request,
-    file: UploadFile = File(...),
-    mode: str = Form("quick")
-):
+async def upload_cv(request: Request, file: UploadFile = File(...), mode: str = Form("quick")):
 
     ip = request.client.host
     today = datetime.now().strftime("%Y-%m-%d")
@@ -115,7 +107,7 @@ async def upload_cv(
     content = await file.read()
     file_hash = hashlib.md5(content).hexdigest()
 
-    # ---- If already roasted ----
+    # ---- If same file roasted before ----
     existing = cursor.execute(
         "SELECT score, one_line, overview, detailed, strengths, improvements, fun_obs "
         "FROM roasts WHERE file_hash=?",
@@ -134,7 +126,7 @@ async def upload_cv(
             "fun_obs": existing[6]
         })
 
-    # ---- Extract resume text ----
+    # ---- Extract text ----
     text = ""
     fname = file.filename.lower()
 
@@ -147,47 +139,47 @@ async def upload_cv(
         elif fname.endswith(".docx"):
             with tempfile.NamedTemporaryFile(delete=False) as tmp:
                 tmp.write(content)
-                tmp_path = tmp.name
-            doc = Document(tmp_path)
+                path = tmp.name
+            doc = Document(path)
             text = "\n".join(p.text for p in doc.paragraphs)
-            os.unlink(tmp_path)
+            os.unlink(path)
 
         elif fname.endswith(".txt"):
             text = content.decode()
 
         else:
             return HTMLResponse("<h1>Unsupported file type</h1>")
-
-    except Exception:
+    except Exception as e:
+        print(f"❌ File reading error: {e}")
         return HTMLResponse("<h1>Could not read file</h1>")
 
-    text = text[:15000]  # safety limit
+    text = text[:15000]  # safety
 
-
-    # ---------------- PROMPTS ----------------
+    # ---------------- PROMPT ----------------
     REAL_DATE = "November 30, 2025"
 
     if mode == "quick":
         prompt = f"""
-You are ROASTRANK — brutal, funny, punchy.
+You are ROASTRANK, the savage CV roaster.
 
-Return ONLY this JSON:
+Give ONLY this JSON:
 {{
   "score": int,
   "one_line": str
 }}
 
 RULES:
-- Max 4 lines
-- Keep compact, witty, sharp
-- Score must be between 60 and 90 normally
+- 4-line roast MAX
+- Short, punchy, funny
+- Avoid long paragraphs
+- Score 60–90 for normal CVs
 
 RESUME:
 {text}
 """
-    else:
+    else:  # full
         prompt = f"""
-You are ROASTRANK — 70% roast, 30% career coach.
+You are ROASTRANK — mix of 70% roast, 30% career coach.
 
 Return ONLY this JSON:
 {{
@@ -201,31 +193,33 @@ Return ONLY this JSON:
 }}
 
 RULES:
-- No section longer than 5–6 lines
-- Be funny, not hostile
-- Assume all resume dates are valid
-- Today's date: {REAL_DATE}
+- Keep sections SHORT (3–6 lines max)
+- No extremely long essays
+- Be funny but not hostile
+- Today's date is {REAL_DATE}
+- Assume ALL dates in resume are valid.
 
 RESUME:
 {text}
 """
 
-
-    # ---------------- CALL GEMINI ----------------
+    # ---------------- GEMINI CALL ----------------
     try:
+        print(f"🤖 Calling Gemini API (mode: {mode})...")
         model = genai.GenerativeModel("gemini-2.0-flash-exp")
         response = model.generate_content(prompt)
         raw = response.text.strip()
+        print(f"✅ Gemini responded (length: {len(raw)})")
         data = extract_json(raw)
+        print(f"✅ JSON parsed successfully")
 
     except Exception as e:
-        print("ERROR:", e)
+        print(f"❌ GEMINI ERROR: {type(e).__name__}: {str(e)}")
 
-        # fallback
         if mode == "quick":
             data = {
                 "score": 65,
-                "one_line": "Even Gemini refused to roast your CV — that’s a roast in itself."
+                "one_line": "Even Gemini refused to roast your CV — that's a roast in itself."
             }
         else:
             data = {
@@ -233,17 +227,17 @@ RESUME:
                 "one_line": "Your CV confused the AI.",
                 "overview": "Gemini failed to produce structured output.",
                 "detailed": "Your resume made Gemini reconsider its life choices.",
-                "strengths": "You keep going — respectable.",
+                "strengths": "You keep going, that's something.",
                 "improvements": "Try re-uploading; the model might be braver next time.",
                 "fun_observation": "Your CV broke a trillion-dollar AI. Iconic."
             }
 
+    # ---------------- SCORE FIX ----------------
     score = data.get("score", 70)
 
     # ---------------- SAVE ----------------
     cursor.execute("""
-        INSERT INTO roasts 
-        (file_hash, score, one_line, overview, detailed, strengths, improvements, fun_obs)
+        INSERT INTO roasts (file_hash, score, one_line, overview, detailed, strengths, improvements, fun_obs)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     """, (
         file_hash,
@@ -258,15 +252,12 @@ RESUME:
 
     cursor.execute("""
         INSERT OR REPLACE INTO daily_limits (ip, date, count)
-        VALUES (
-            ?, ?, 
-            COALESCE((SELECT count FROM daily_limits WHERE ip=? AND date=?), 0) + 1
-        )
+        VALUES (?, ?, COALESCE((SELECT count FROM daily_limits WHERE ip=? AND date=?), 0)+1)
     """, (ip, today, ip, today))
 
     conn.commit()
 
-    # ---------------- RENDER ----------------
+    # ---------------- RENDER RESULT ----------------
     return templates.TemplateResponse("result.html", {
         "request": request,
         "score": score,
