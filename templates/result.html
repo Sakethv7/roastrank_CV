@@ -1,38 +1,95 @@
 <!DOCTYPE html>
-<html>
+<html lang="en" class="bg-black text-white overflow-x-hidden">
 <head>
-    <title>RoastRank - Results</title>
-    <link rel="stylesheet" href="/static/style.css" />
+  <meta charset="UTF-8" />
+  <title>RoastRank — Results</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@800;900&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+  <style>
+    .glow { text-shadow: 0 0 18px rgba(255,80,80,0.9); }
+    .nebula-box {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.12);
+      backdrop-filter: blur(14px);
+      box-shadow: 0 0 25px rgba(255,0,100,0.35);
+    }
+
+    .section-title {
+      font-family: 'Orbitron', sans-serif;
+    }
+  </style>
 </head>
-<body>
 
-<div class="container">
+<body class="relative min-h-screen px-4 py-10">
 
-    <h1>🔥 ROAST COMPLETE</h1>
-    <h2>Candidate: {{ name }}</h2>
+  <!-- CONTENT -->
+  <div class="max-w-4xl mx-auto space-y-10">
 
-    <div class="score-box">
-        <h1>{{ score }}/100</h1>
-        <p>Evaluation generated successfully</p>
+    <!-- TITLE -->
+    <h1 class="text-center text-5xl sm:text-6xl md:text-7xl font-black glow">
+      🔥 ROAST COMPLETE
+    </h1>
+
+    <!-- NAME -->
+    <h2 class="text-center text-2xl sm:text-3xl font-bold opacity-90">
+      Candidate: <span class="text-red-400">{{ name }}</span>
+    </h2>
+
+    <!-- SCORE -->
+    <div class="text-center mt-4">
+      <div class="text-5xl sm:text-6xl md:text-7xl font-black text-yellow-400 animate-pulse"
+           style="font-family:'Orbitron',sans-serif;">
+        {{ score }}/100
+      </div>
+      <p class="text-gray-400 text-sm mt-2 font-mono">Evaluation generated successfully</p>
     </div>
 
-    <div class="section">
-        <h3>ONE-LINE ROAST</h3>
-        <p>{{ one_line }}</p>
+    <!-- MAIN CONTENT CARD -->
+    <div class="nebula-box rounded-3xl p-6 sm:p-10 space-y-10 font-mono">
+
+      <div>
+        <h2 class="section-title text-2xl text-pink-400 mb-2">ONE-LINE ROAST</h2>
+        <p class="text-lg whitespace-pre-line opacity-90">{{ one_line }}</p>
+      </div>
+
+      {% if overview %}
+      <div>
+        <h2 class="section-title text-2xl text-yellow-300 mb-2">OVERVIEW</h2>
+        <p class="text-lg whitespace-pre-line opacity-90">{{ overview }}</p>
+      </div>
+
+      <div>
+        <h2 class="section-title text-2xl text-red-400 mb-2">FULL ROAST</h2>
+        <p class="text-lg whitespace-pre-line opacity-90">{{ detailed }}</p>
+      </div>
+
+      <div>
+        <h2 class="section-title text-2xl text-green-400 mb-2">STRENGTHS</h2>
+        <p class="text-lg whitespace-pre-line opacity-90">{{ strengths }}</p>
+      </div>
+
+      <div>
+        <h2 class="section-title text-2xl text-blue-400 mb-2">IMPROVEMENTS</h2>
+        <p class="text-lg whitespace-pre-line opacity-90">{{ improvements }}</p>
+      </div>
+
+      <div>
+        <h2 class="section-title text-2xl text-cyan-300 mb-2">FUN OBSERVATION</h2>
+        <p class="text-lg whitespace-pre-line opacity-90">{{ fun_obs }}</p>
+      </div>
+      {% endif %}
+
     </div>
 
-    {% if overview %}
-    <div class="section"><h3>OVERVIEW</h3><p>{{ overview }}</p></div>
-    <div class="section"><h3>FULL ROAST</h3><p>{{ detailed }}</p></div>
-    <div class="section"><h3>STRENGTHS</h3><p>{{ strengths }}</p></div>
-    <div class="section"><h3>IMPROVEMENTS</h3><p>{{ improvements }}</p></div>
-    <div class="section"><h3>FUN OBSERVATION</h3><p>{{ fun_obs }}</p></div>
-    {% endif %}
+    <!-- BUTTONS -->
+    <div class="flex flex-col sm:flex-row justify-center gap-6 pt-6">
+      <a href="/" class="text-xl underline hover:text-pink-400 transition text-center">← Roast Another</a>
+      <a href="/leaderboard" class="text-xl underline hover:text-green-400 transition text-center">View Leaderboard →</a>
+    </div>
 
-    <a href="/" class="btn">Roast Another CV</a>
-    <a href="/leaderboard" class="btn-secondary">View Leaderboard</a>
-
-</div>
+  </div>
 
 </body>
 </html>
