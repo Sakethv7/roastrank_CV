@@ -9,7 +9,7 @@ import hashlib
 from datetime import datetime
 from dotenv import load_dotenv
 
-import google.generativeai as genai
+from openai import OpenAI
 from PyPDF2 import PdfReader
 from docx import Document
 import tempfile
@@ -20,14 +20,13 @@ import re
 # ------------------ INIT ------------------
 load_dotenv()
 
-# Try both possible environment variable names
-api_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
-
+api_key = os.getenv("OPENAI_API_KEY")
 if api_key:
-    print(f"✅ API Key found and loaded (length: {len(api_key)})")
-    genai.configure(api_key=api_key)
+    print("✅ OpenAI API key loaded")
+    client = OpenAI(api_key=api_key)
 else:
-    print("❌ WARNING: No API key found! Set GOOGLE_API_KEY or GEMINI_API_KEY")
+    print("❌ ERROR: OPENAI_API_KEY not found")
+    client = None
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -62,9 +61,9 @@ CREATE TABLE IF NOT EXISTS daily_limits (
 conn.commit()
 
 # ------------------ JSON EXTRACTION ------------------
-def extract_json(raw):
-    """Extract the largest JSON block and sanitize using json5."""
-    raw = re.sub(r"```.*?```", "", raw, flags=re.DOTALL)  # remove fences
+def extract_json(raw: str):
+    """Extract JSON from model output using json5 fallback."""
+    raw = re.sub(r"```.*?```", "", raw, flags=re.DOTALL)
 
     matches = re.findall(r"\{.*?\}", raw, flags=re.DOTALL)
     if not matches:
@@ -77,29 +76,43 @@ def extract_json(raw):
     except:
         return json5.loads(candidate)
 
+
 # ------------------ HOME ------------------
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
+
 # ------------------ LEADERBOARD ------------------
 @app.get("/leaderboard", response_class=HTMLResponse)
 async def leaderboard(request: Request):
-    roasts = cursor.execute(
-        "SELECT score, one_line || '\n\n' || detailed, created_at FROM roasts ORDER BY score DESC LIMIT 50"
+    rows = cursor.execute(
+        "SELECT score, one_line || '\n\n' || detailed, created_at "
+        "FROM roasts ORDER BY score DESC LIMIT 50"
     ).fetchall()
-    return templates.TemplateResponse("leaderboard.html", {"request": request, "roasts": roasts})
+
+    return templates.TemplateResponse("leaderboard.html", {
+        "request": request,
+        "roasts": rows
+    })
+
 
 # ------------------ UPLOAD ------------------
 @app.post("/upload")
-async def upload_cv(request: Request, file: UploadFile = File(...), mode: str = Form("quick")):
-
+async def upload_cv(
+    request: Request,
+    file: UploadFile = File(...),
+    mode: str = Form("quick")
+):
     ip = request.client.host
     today = datetime.now().strftime("%Y-%m-%d")
 
     # ---- RATE LIMIT ----
-    cursor.execute("SELECT count FROM daily_limits WHERE ip=? AND date=?", (ip, today))
-    row = cursor.fetchone()
+    row = cursor.execute(
+        "SELECT count FROM daily_limits WHERE ip=? AND date=?",
+        (ip, today)
+    ).fetchone()
+
     if row and row[0] >= 10:
         return HTMLResponse("<h1 style='color:red;text-align:center;'>Daily Limit Reached</h1>")
 
@@ -108,22 +121,21 @@ async def upload_cv(request: Request, file: UploadFile = File(...), mode: str = 
     file_hash = hashlib.md5(content).hexdigest()
 
     # ---- If same file roasted before ----
-    existing = cursor.execute(
-        "SELECT score, one_line, overview, detailed, strengths, improvements, fun_obs "
-        "FROM roasts WHERE file_hash=?",
-        (file_hash,)
-    ).fetchone()
+    found = cursor.execute("""
+        SELECT score, one_line, overview, detailed, strengths, improvements, fun_obs
+        FROM roasts WHERE file_hash=?
+    """, (file_hash,)).fetchone()
 
-    if existing:
+    if found:
         return templates.TemplateResponse("result.html", {
             "request": request,
-            "score": existing[0],
-            "one_line": existing[1],
-            "overview": existing[2],
-            "detailed": existing[3],
-            "strengths": existing[4],
-            "improvements": existing[5],
-            "fun_obs": existing[6]
+            "score": found[0],
+            "one_line": found[1],
+            "overview": found[2],
+            "detailed": found[3],
+            "strengths": found[4],
+            "improvements": found[5],
+            "fun_obs": found[6]
         })
 
     # ---- Extract text ----
@@ -137,49 +149,47 @@ async def upload_cv(request: Request, file: UploadFile = File(...), mode: str = 
                 text += (p.extract_text() or "") + "\n"
 
         elif fname.endswith(".docx"):
-            with tempfile.NamedTemporaryFile(delete=False) as tmp:
-                tmp.write(content)
-                path = tmp.name
-            doc = Document(path)
-            text = "\n".join(p.text for p in doc.paragraphs)
-            os.unlink(path)
+            with tempfile.NamedTemporaryFile(delete=False) as t:
+                t.write(content)
+                p = t.name
+            doc = Document(p)
+            text = "\n".join(x.text for x in doc.paragraphs)
+            os.unlink(p)
 
         elif fname.endswith(".txt"):
             text = content.decode()
 
         else:
             return HTMLResponse("<h1>Unsupported file type</h1>")
-    except Exception as e:
-        print(f"❌ File reading error: {e}")
+    except:
         return HTMLResponse("<h1>Could not read file</h1>")
 
-    text = text[:15000]  # safety
+    text = text[:15000]
 
-    # ---------------- PROMPT ----------------
+    # ---------------- PROMPT BUILD ----------------
     REAL_DATE = "November 30, 2025"
 
     if mode == "quick":
         prompt = f"""
-You are ROASTRANK, the savage CV roaster.
+You are ROASTRANK.
 
-Give ONLY this JSON:
+Return only this JSON:
 {{
   "score": int,
   "one_line": str
 }}
 
-RULES:
-- 4-line roast MAX
-- Short, punchy, funny
-- Avoid long paragraphs
-- Score 60–90 for normal CVs
+Rules:
+- MAX 4 lines
+- Short, punchy roast
+- Score 60–90 normally
 
 RESUME:
 {text}
 """
-    else:  # full
+    else:
         prompt = f"""
-You are ROASTRANK — mix of 70% roast, 30% career coach.
+You are ROASTRANK — 70% roast, 30% career coach.
 
 Return ONLY this JSON:
 {{
@@ -192,52 +202,51 @@ Return ONLY this JSON:
   "fun_observation": str
 }}
 
-RULES:
-- Keep sections SHORT (3–6 lines max)
-- No extremely long essays
-- Be funny but not hostile
-- Today's date is {REAL_DATE}
-- Assume ALL dates in resume are valid.
+Rules:
+- Keep every section 3–6 lines max
+- Today's date: {REAL_DATE}
+- Assume all resume dates are valid
 
 RESUME:
 {text}
 """
 
-    # ---------------- GEMINI CALL ----------------
+    # ---------------- OPENAI CALL ----------------
     try:
-        print(f"🤖 Calling Gemini API (mode: {mode})...")
-        model = genai.GenerativeModel("gemini-2.0-flash-exp")
-        response = model.generate_content(prompt)
-        raw = response.text.strip()
-        print(f"✅ Gemini responded (length: {len(raw)})")
+        completion = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.7
+        )
+
+        raw = completion.choices[0].message.content
         data = extract_json(raw)
-        print(f"✅ JSON parsed successfully")
 
     except Exception as e:
-        print(f"❌ GEMINI ERROR: {type(e).__name__}: {str(e)}")
+        print("ERROR:", e)
 
         if mode == "quick":
             data = {
                 "score": 65,
-                "one_line": "Even Gemini refused to roast your CV — that's a roast in itself."
+                "one_line": "Even GPT refused to roast your CV — that’s already a roast."
             }
         else:
             data = {
                 "score": 68,
-                "one_line": "Your CV confused the AI.",
-                "overview": "Gemini failed to produce structured output.",
-                "detailed": "Your resume made Gemini reconsider its life choices.",
-                "strengths": "You keep going, that's something.",
-                "improvements": "Try re-uploading; the model might be braver next time.",
-                "fun_observation": "Your CV broke a trillion-dollar AI. Iconic."
+                "one_line": "Your CV confused GPT.",
+                "overview": "The model could not parse your resume fully.",
+                "detailed": "Your CV made even GPT take a coffee break.",
+                "strengths": "Resilience.",
+                "improvements": "Try uploading again.",
+                "fun_observation": "Your CV broke a $10B AI model. Respect."
             }
 
-    # ---------------- SCORE FIX ----------------
     score = data.get("score", 70)
 
     # ---------------- SAVE ----------------
     cursor.execute("""
-        INSERT INTO roasts (file_hash, score, one_line, overview, detailed, strengths, improvements, fun_obs)
+        INSERT INTO roasts 
+        (file_hash, score, one_line, overview, detailed, strengths, improvements, fun_obs)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     """, (
         file_hash,
@@ -257,7 +266,7 @@ RESUME:
 
     conn.commit()
 
-    # ---------------- RENDER RESULT ----------------
+    # ---------------- RETURN RESULT ----------------
     return templates.TemplateResponse("result.html", {
         "request": request,
         "score": score,

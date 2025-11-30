@@ -1,10 +1,9 @@
 fastapi
-uvicorn[standard]
-jinja2
+uvicorn
 python-multipart
-httpx
-google-generativeai
-PyPDF2
+Jinja2
 python-dotenv
+PyPDF2
 python-docx
-json5
+openai>=1.0.0
+pyjson5
