@@ -1,3 +1,13 @@
+---
+title: RoastRank
+emoji: "🔥"
+colorFrom: red
+colorTo: pink
+sdk: docker
+app_file: main.py
+pinned: false
+---
+
 # RoastRank
 ## Overview
 
