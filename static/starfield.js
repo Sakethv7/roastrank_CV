@@ -2,37 +2,36 @@ function startStarfield() {
   const canvas = document.getElementById("starfield");
   const ctx = canvas.getContext("2d");
 
-  let w, h;
   function resize() {
-    w = canvas.width = window.innerWidth;
-    h = canvas.height = window.innerHeight;
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
   }
-  window.onresize = resize;
   resize();
+  window.addEventListener("resize", resize);
 
   const stars = [];
-  for (let i = 0; i < 200; i++) {
+  for (let i = 0; i < 250; i++) {
     stars.push({
-      x: Math.random() * w,
-      y: Math.random() * h,
-      z: Math.random() * 3 + 1
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      z: Math.random() * 2 + 0.5
     });
   }
 
   function draw() {
-    ctx.fillStyle = "black";
-    ctx.fillRect(0, 0, w, h);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     ctx.fillStyle = "white";
-    stars.forEach(s => {
-      ctx.fillRect(s.x, s.y, 2, s.z);
 
-      s.y += s.z * 1.2;
-      if (s.y > h) {
+    for (let s of stars) {
+      ctx.fillRect(s.x, s.y, 2, 3 * s.z);
+      s.y += s.z * 2;
+
+      if (s.y > canvas.height) {
         s.y = 0;
-        s.x = Math.random() * w;
+        s.x = Math.random() * canvas.width;
       }
-    });
+    }
 
     requestAnimationFrame(draw);
   }
