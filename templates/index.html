@@ -1,123 +1,152 @@
 <!DOCTYPE html>
-<html lang="en" class="bg-black text-white overflow-x-hidden">
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>RoastRank — Galactic Resume Destruction</title>
+<meta charset="UTF-8">
+<title>ROASTRANK — Enter Hyperspace</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+<!-- Tailwind -->
+<script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- Starfield -->
-  <style>
-    #starfield {
-      position: fixed;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 0;
-      opacity: 0.55;
+<style>
+    /* Hyperspace star streaks */
+    body {
+        background: black;
+        overflow: hidden;
+        height: 100vh;
     }
 
-    .glow {
-      text-shadow: 0 0 20px rgba(255,200,50,0.9),
-                   0 0 40px rgba(255,140,0,0.7);
+    .star {
+        position: absolute;
+        width: 2px;
+        height: 40px;
+        background: rgba(255,255,255,0.7);
+        animation: warp 1.5s linear infinite;
+    }
+
+    @keyframes warp {
+        from { transform: translateY(-200px) scaleY(0.1); opacity: 0; }
+        to { transform: translateY(120vh) scaleY(1); opacity: 1; }
+    }
+
+    .star:nth-child(odd) { animation-duration: 1.8s; opacity: 0.6; }
+    .star:nth-child(even) { animation-duration: 1.3s; opacity: 0.8; }
+
+    /* Glow button */
+    .glow-btn {
+        background: linear-gradient(135deg, #ffcc00, #ff8800);
+        color: black;
+        font-weight: bold;
+        padding: 14px 26px;
+        border-radius: 12px;
+        box-shadow: 0 0 20px rgba(255,200,0,0.4);
+        transition: 0.25s;
+    }
+
+    .glow-btn:hover {
+        transform: scale(1.05);
+        box-shadow: 0 0 30px rgba(255,200,0,0.7);
     }
 
     .mode-btn {
-      border: 1.5px solid rgba(255,255,255,0.25);
-      transition: 0.2s ease;
-    }
-    .mode-btn.selected {
-      background: linear-gradient(90deg, #ffd03b, #ff8a00);
-      color: black;
-      border-color: transparent;
-      transform: scale(1.03);
+        padding: 12px 24px;
+        border-radius: 10px;
+        border: 2px solid #555;
+        color: white;
+        background: transparent;
+        transition: 0.25s;
     }
 
-    #loadingDiv {
-      display: none;
+    .mode-btn.active {
+        border-color: #ffcc00;
+        background: rgba(255,200,0,0.15);
+        box-shadow: 0 0 15px rgba(255,200,0,0.4);
     }
-  </style>
+
+    /* Loader */
+    #loader {
+        display: none;
+        font-size: 22px;
+        color: #ffcc00;
+    }
+</style>
 </head>
 
-<body class="relative min-h-screen flex flex-col">
+<body>
 
-  <canvas id="starfield"></canvas>
+<!-- Starfield -->
+<script>
+for (let i = 0; i < 120; i++) {
+    const star = document.createElement('div');
+    star.classList.add('star');
+    star.style.left = Math.random()*100 + "vw";
+    star.style.top = Math.random()*100 + "vh";
+    document.body.appendChild(star);
+}
+</script>
 
-  <main class="relative z-10 w-full flex flex-col items-center px-6 pt-20 pb-24">
+<div class="relative z-10 flex flex-col items-center text-center text-white pt-16">
 
-    <!-- TITLE -->
-    <h1 class="glow text-5xl sm:text-6xl md:text-7xl font-extrabold text-center"
-        style="font-family:'Orbitron',sans-serif;">
-      ROASTRANK
+    <h1 class="text-5xl sm:text-6xl md:text-7xl font-black mb-6"
+        style="text-shadow:0 0 25px #ff3333;">
+        ROASTRANK
     </h1>
 
-    <p class="text-gray-300 text-base sm:text-lg mt-3 mb-10 text-center font-mono">
-      Upload your CV. Brace for emotional damage.
+    <p class="text-lg text-gray-300 mb-10">
+        Upload your CV. Brace for emotional damage.
     </p>
 
-    <!-- MODE TOGGLE -->
-    <div class="flex gap-4 mb-8">
-      <button type="button" id="quickBtn" onclick="setMode('quick')"
-              class="mode-btn selected px-5 py-3 rounded-xl font-bold">
-        ⚡ Quick Roast
-      </button>
-      <button type="button" id="fullBtn" onclick="setMode('full')"
-              class="mode-btn px-5 py-3 rounded-xl font-bold">
-        🔥 Full Roast
-      </button>
+    <!-- Mode Buttons -->
+    <div class="flex gap-4 mb-6">
+        <button id="quickBtn" class="mode-btn active" onclick="selectMode('quick')">
+            ⚡ Quick Roast (4 lines)
+        </button>
+
+        <button id="fullBtn" class="mode-btn" onclick="selectMode('full')">
+            🔥 Full Roast (compact)
+        </button>
     </div>
 
-    <p class="text-gray-400 text-xs mb-6 font-mono">
-      * Full roast takes ~1 second longer
+    <p class="text-sm text-gray-400 mb-6">
+        * Full roast takes ~1 second longer
     </p>
 
-    <!-- UPLOAD FORM -->
     <form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data"
-          class="flex flex-col items-center w-full max-w-sm">
+          class="flex flex-col items-center">
 
-      <input type="hidden" id="modeInput" name="mode" value="quick">
+        <input type="hidden" id="modeInput" name="mode" value="quick">
 
-      <label class="w-full cursor-pointer bg-white/10 py-6 rounded-xl border border-white/20 text-center hover:bg-white/20 transition">
-        <span class="font-mono text-sm tracking-wide">Select CV (PDF / DOCX / TXT)</span>
-        <input type="file" name="file" class="hidden" accept=".pdf,.docx,.txt"
-               onchange="submitUpload()" required>
-      </label>
+        <label class="w-full max-w-md glow-btn cursor-pointer">
+            <input id="fileInput" type="file" name="file" accept=".pdf,.docx,.txt" class="hidden"
+                   onchange="submitForm()">
+            Select CV (PDF / DOCX / TXT)
+        </label>
+
+        <div id="loader" class="mt-6 animate-pulse">
+            🚀 Entering hyperspace... preparing roast...
+        </div>
     </form>
 
-    <!-- LOADING UI -->
-    <div id="loadingDiv" class="mt-8 font-mono text-yellow-300 text-lg animate-pulse">
-      Uploading… Initializing roast engines…
-    </div>
+</div>
 
-    <!-- LEADERBOARD BUTTON -->
-    <a href="/leaderboard"
-       class="fixed bottom-6 right-6 text-yellow-300 font-mono underline text-sm hover:text-yellow-200">
-      View Leaderboard →
-    </a>
+<script>
+function selectMode(mode) {
+    document.getElementById("modeInput").value = mode;
 
-  </main>
+    document.getElementById("quickBtn").classList.remove("active");
+    document.getElementById("fullBtn").classList.remove("active");
 
-  <script src="/static/starfield.js"></script>
+    if (mode === "quick") document.getElementById("quickBtn").classList.add("active");
+    if (mode === "full") document.getElementById("fullBtn").classList.add("active");
+}
 
-  <script>
-    // --- Roast Mode Toggle ---
-    function setMode(m) {
-      document.getElementById("modeInput").value = m;
-      document.getElementById("quickBtn").classList.toggle("selected", m === "quick");
-      document.getElementById("fullBtn").classList.toggle("selected", m === "full");
-    }
-
-    // --- Form Submit UI ---
-    function submitUpload() {
-      document.getElementById("loadingDiv").style.display = "block";
-      setTimeout(() => document.getElementById("uploadForm").submit(), 100);
-    }
-
-    // Start starfield
-    window.onload = startStarfield;
-  </script>
+function submitForm() {
+    document.getElementById("loader").style.display = "block";
+    setTimeout(() => {
+        document.getElementById("uploadForm").submit();
+    }, 300);
+}
+</script>
 
 </body>
 </html>

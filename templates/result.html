@@ -1,109 +1,139 @@
 <!DOCTYPE html>
-<html lang="en" class="bg-black text-white">
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>RoastRank — Roast Results</title>
+<meta charset="UTF-8">
+<title>Roast Complete</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
 
-  <style>
-    #starfield {
-      position: fixed;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      opacity: 0.45;
-      z-index: 0;
+<style>
+    body {
+        background: black;
+        color: white;
+        overflow-x: hidden;
+        min-height: 100vh;
     }
-    .glitch {
-      text-shadow: 0 0 12px #ff3333;
+
+    /* Hyperspace */
+    .star {
+        position: absolute;
+        width: 2px;
+        height: 40px;
+        background: rgba(255,255,255,0.7);
+        animation: warp 1.5s linear infinite;
     }
-    .section-title {
-      font-family: 'Orbitron', sans-serif;
-      letter-spacing: 1px;
+
+    @keyframes warp {
+        from { transform: translateY(-200px) scaleY(0.1); opacity: 0; }
+        to { transform: translateY(120vh) scaleY(1); opacity: 1; }
     }
+
+    .star:nth-child(odd) { animation-duration: 1.8s; opacity: 0.6; }
+    .star:nth-child(even) { animation-duration: 1.2s; opacity: 0.8; }
+
     .card {
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.15);
-      backdrop-filter: blur(14px);
-      box-shadow: 0 0 20px rgba(255,160,0,0.25);
+        background: rgba(20,20,20,0.65);
+        border-radius: 20px;
+        padding: 26px;
+        margin-top: 24px;
+        box-shadow: 0 0 30px rgba(255,0,80,0.25);
     }
-  </style>
+</style>
 </head>
 
-<body class="relative min-h-screen">
+<body>
 
-  <canvas id="starfield"></canvas>
+<!-- stars -->
+<script>
+for (let i = 0; i < 120; i++) {
+    const s = document.createElement("div");
+    s.classList.add("star");
+    s.style.left = Math.random()*100 + "vw";
+    s.style.top = Math.random()*100 + "vh";
+    document.body.appendChild(s);
+}
+</script>
 
-  <div class="relative z-10 max-w-4xl mx-auto px-6 py-20 space-y-10">
+<div class="relative z-10 max-w-3xl mx-auto pt-16 pb-20 px-6">
 
-    <h1 class="text-center glitch text-5xl sm:text-6xl md:text-7xl font-black">ROAST COMPLETE</h1>
+    <h1 class="text-center text-6xl font-black mb-2"
+        style="text-shadow:0 0 25px #ff3366;">
+        🔥 ROAST COMPLETE
+    </h1>
 
-    <p class="text-center text-yellow-300 text-lg font-mono">
-      Candidate: <span class="font-bold">{{ name }}</span>
+    <p class="text-center text-xl text-gray-300 mb-10">
+        Candidate: <span class="text-pink-400 font-semibold">{{ name }}</span>
     </p>
 
-    <div class="text-center">
-      <div class="text-6xl font-black text-yellow-400" style="font-family:'Orbitron'">
+    <p class="text-center text-7xl font-bold text-yellow-400 mb-4"
+       style="text-shadow:0 0 25px #ffaa00;">
         {{ score }}/100
-      </div>
-      <p class="text-gray-400 mt-2 font-mono text-sm">Evaluation generated successfully</p>
+    </p>
+
+    <p class="text-center text-gray-400 mb-8">
+        Evaluation generated successfully
+    </p>
+
+    <!-- ONE LINE -->
+    {% if one_line %}
+    <div class="card">
+        <h2 class="text-pink-400 text-2xl font-bold mb-3">ONE-LINE ROAST</h2>
+        <p class="text-lg leading-relaxed">{{ one_line }}</p>
+    </div>
+    {% endif %}
+
+    <!-- OVERVIEW -->
+    {% if overview %}
+    <div class="card">
+        <h2 class="text-yellow-300 text-2xl font-bold mb-3">OVERVIEW</h2>
+        <p class="leading-relaxed">{{ overview }}</p>
+    </div>
+    {% endif %}
+
+    <!-- FULL ROAST -->
+    {% if detailed %}
+    <div class="card">
+        <h2 class="text-red-300 text-2xl font-bold mb-3">FULL ROAST</h2>
+        <p class="leading-relaxed">{{ detailed }}</p>
+    </div>
+    {% endif %}
+
+    <!-- STRENGTHS -->
+    {% if strengths %}
+    <div class="card">
+        <h2 class="text-green-300 text-2xl font-bold mb-3">STRENGTHS</h2>
+        <p class="leading-relaxed whitespace-pre-line">{{ strengths }}</p>
+    </div>
+    {% endif %}
+
+    <!-- IMPROVEMENTS -->
+    {% if improvements %}
+    <div class="card">
+        <h2 class="text-blue-300 text-2xl font-bold mb-3">IMPROVEMENTS</h2>
+        <p class="leading-relaxed whitespace-pre-line">{{ improvements }}</p>
+    </div>
+    {% endif %}
+
+    <!-- FUN OBS -->
+    {% if fun_obs %}
+    <div class="card mb-10">
+        <h2 class="text-purple-300 text-2xl font-bold mb-3">FUN OBSERVATION</h2>
+        <p class="leading-relaxed">{{ fun_obs }}</p>
+    </div>
+    {% endif %}
+
+    <!-- Buttons -->
+    <div class="mt-10 flex justify-between text-lg">
+        <a href="/" class="text-yellow-300 hover:text-yellow-400">
+            ← Roast Another
+        </a>
+
+        <a href="/leaderboard" class="text-yellow-300 hover:text-yellow-400">
+            View Leaderboard →
+        </a>
     </div>
 
-    <div class="card rounded-3xl p-8 sm:p-10 space-y-10 font-mono">
-
-      <div>
-        <h2 class="section-title text-2xl text-pink-400 mb-2">ONE-LINE ROAST</h2>
-        <p class="text-base whitespace-pre-line opacity-90">{{ one_line }}</p>
-      </div>
-
-      {% if overview %}
-      <div>
-        <h2 class="section-title text-2xl text-yellow-300 mb-2">OVERVIEW</h2>
-        <p class="text-base whitespace-pre-line opacity-90">{{ overview }}</p>
-      </div>
-      {% endif %}
-
-      {% if detailed %}
-      <div>
-        <h2 class="section-title text-2xl text-red-400 mb-2">FULL ROAST</h2>
-        <p class="text-base whitespace-pre-line opacity-90">{{ detailed }}</p>
-      </div>
-      {% endif %}
-
-      {% if strengths %}
-      <div>
-        <h2 class="section-title text-2xl text-green-400 mb-2">STRENGTHS</h2>
-        <p class="text-base whitespace-pre-line opacity-90">{{ strengths }}</p>
-      </div>
-      {% endif %}
-
-      {% if improvements %}
-      <div>
-        <h2 class="section-title text-2xl text-blue-400 mb-2">IMPROVEMENTS</h2>
-        <p class="text-base whitespace-pre-line opacity-90">{{ improvements }}</p>
-      </div>
-      {% endif %}
-
-      {% if fun_obs %}
-      <div>
-        <h2 class="section-title text-2xl text-cyan-300 mb-2">FUN OBSERVATION</h2>
-        <p class="text-base whitespace-pre-line opacity-90">{{ fun_obs }}</p>
-      </div>
-      {% endif %}
-
-    </div>
-
-    <div class="flex justify-center gap-8 text-lg pt-8">
-      <a href="/" class="underline hover:text-pink-400">← Roast Another</a>
-      <a href="/leaderboard" class="underline hover:text-green-400">View Leaderboard →</a>
-    </div>
-
-  </div>
-
-  <script src="/static/starfield.js"></script>
-  <script> window.onload = startStarfield; </script>
-
+</div>
 </body>
 </html>

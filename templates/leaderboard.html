@@ -1,70 +1,95 @@
 <!DOCTYPE html>
-<html lang="en" class="bg-black text-white min-h-screen overflow-x-hidden">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>RoastRank — Leaderboard</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+<meta charset="UTF-8">
+<title>Global Roastrank</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <style>
-    #starfield {
-      position: fixed;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      opacity: 0.45;
-      z-index: 0;
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+    body {
+        background: black;
+        color: white;
+        overflow-x: hidden;
+        min-height: 100vh;
+    }
+
+    .star {
+        position: absolute;
+        width: 2px;
+        height: 40px;
+        background: rgba(255,255,255,0.7);
+        animation: warp 1.5s linear infinite;
+    }
+
+    @keyframes warp {
+        from { transform: translateY(-200px) scaleY(0.1); opacity: 0; }
+        to { transform: translateY(120vh) scaleY(1); opacity: 1; }
     }
 
     .card {
-      background: rgba(255,255,255,0.06);
-      backdrop-filter: blur(12px);
-      border: 1px solid rgba(255,255,255,0.15);
+        background: rgba(25,25,25,0.7);
+        border-radius: 20px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 0 20px rgba(255,255,255,0.1);
     }
-
-    .glow {
-      text-shadow: 0 0 20px rgba(255,200,50,0.8);
-    }
-  </style>
+</style>
 </head>
 
-<body class="relative">
+<body>
 
-  <canvas id="starfield"></canvas>
+<!-- stars -->
+<script>
+for (let i = 0; i < 120; i++) {
+    const s = document.createElement("div");
+    s.classList.add("star");
+    s.style.left = Math.random()*100 + "vw";
+    s.style.top = Math.random()*100 + "vh";
+    document.body.appendChild(s);
+}
+</script>
 
-  <div class="relative z-10 max-w-4xl mx-auto px-6 py-20">
+<div class="relative z-10 max-w-3xl mx-auto pt-16 pb-20 px-6">
 
-    <h1 class="text-center glow text-5xl sm:text-6xl md:text-7xl font-black mb-12"
-        style="font-family:'Orbitron',sans-serif;">
-      LEADERBOARD
+    <h1 class="text-center text-5xl sm:text-6xl font-black mb-12"
+        style="text-shadow:0 0 25px #ffdd33;">
+        🔥 GLOBAL ROASTRANK
     </h1>
 
-    <div class="space-y-8">
-      {% for name, score, one, ov, det, strg, imp, fun, time in roasts %}
-      <div class="card rounded-3xl p-6 sm:p-8">
+    {% for r in roasts %}
+    <div class="card">
 
-        <div class="flex justify-between items-center mb-4">
-          <div class="text-xl font-mono text-gray-300">{{ name }}</div>
-          <div class="text-5xl font-black text-yellow-300">{{ score }}</div>
-        </div>
+        <p class="text-2xl font-bold text-yellow-300 mb-2">
+            #{{ loop.index }}
+        </p>
 
-        <pre class="whitespace-pre-wrap text-sm sm:text-base font-mono opacity-90">
-{{ one }}
-{{ det }}
-        </pre>
+        <p class="text-xl font-semibold text-pink-300">
+            {{ r[0] }}
+        </p>
 
-        <p class="text-gray-500 text-xs mt-4 font-mono">{{ time }}</p>
-      </div>
-      {% endfor %}
+        <p class="text-yellow-400 text-2xl mt-2 mb-2">
+            {{ r[1] }}/100
+        </p>
+
+        <p class="text-gray-300 mb-3">
+            {{ r[2] }}
+        </p>
+
+        <p class="text-gray-400 text-sm">
+            {{ r[4] }}
+        </p>
+
     </div>
+    {% endfor %}
 
     <div class="text-center mt-12">
-      <a href="/" class="underline hover:text-yellow-300 font-mono">← Back to Upload</a>
+        <a href="/" class="text-yellow-300 hover:text-yellow-400 text-lg">
+            ← Go Back
+        </a>
     </div>
 
-  </div>
-
-  <script src="/static/starfield.js"></script>
-  <script> window.onload = startStarfield; </script>
-
+</div>
 </body>
 </html>
