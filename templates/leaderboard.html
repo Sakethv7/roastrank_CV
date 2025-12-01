@@ -1,95 +1,35 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="bg-black text-white">
 <head>
-<meta charset="UTF-8">
-<title>Global Roastrank</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<script src="https://cdn.tailwindcss.com"></script>
-
-<style>
-    body {
-        background: black;
-        color: white;
-        overflow-x: hidden;
-        min-height: 100vh;
-    }
-
-    .star {
-        position: absolute;
-        width: 2px;
-        height: 40px;
-        background: rgba(255,255,255,0.7);
-        animation: warp 1.5s linear infinite;
-    }
-
-    @keyframes warp {
-        from { transform: translateY(-200px) scaleY(0.1); opacity: 0; }
-        to { transform: translateY(120vh) scaleY(1); opacity: 1; }
-    }
-
-    .card {
-        background: rgba(25,25,25,0.7);
-        border-radius: 20px;
-        padding: 20px;
-        margin-bottom: 20px;
-        box-shadow: 0 0 20px rgba(255,255,255,0.1);
-    }
-</style>
+  <meta charset="UTF-8">
+  <title>Leaderboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body>
+<body class="px-6 py-12">
 
-<!-- stars -->
-<script>
-for (let i = 0; i < 120; i++) {
-    const s = document.createElement("div");
-    s.classList.add("star");
-    s.style.left = Math.random()*100 + "vw";
-    s.style.top = Math.random()*100 + "vh";
-    document.body.appendChild(s);
-}
-</script>
+  <h1 class="text-5xl font-black text-center mb-10"
+      style="font-family:'Orbitron'; text-shadow:0 0 16px gold;">
+      GLOBAL ROASTRANK
+  </h1>
 
-<div class="relative z-10 max-w-3xl mx-auto pt-16 pb-20 px-6">
+  <div class="max-w-3xl mx-auto space-y-10">
 
-    <h1 class="text-center text-5xl sm:text-6xl font-black mb-12"
-        style="text-shadow:0 0 25px #ffdd33;">
-        🔥 GLOBAL ROASTRANK
-    </h1>
-
-    {% for r in roasts %}
-    <div class="card">
-
-        <p class="text-2xl font-bold text-yellow-300 mb-2">
-            #{{ loop.index }}
-        </p>
-
-        <p class="text-xl font-semibold text-pink-300">
-            {{ r[0] }}
-        </p>
-
-        <p class="text-yellow-400 text-2xl mt-2 mb-2">
-            {{ r[1] }}/100
-        </p>
-
-        <p class="text-gray-300 mb-3">
-            {{ r[2] }}
-        </p>
-
-        <p class="text-gray-400 text-sm">
-            {{ r[4] }}
-        </p>
-
+    {% for row in rows %}
+    <div class="bg-gray-900 p-6 rounded-xl shadow-xl">
+      <p class="text-yellow-400 text-2xl font-bold">#{{ loop.index }}</p>
+      <p class="text-xl mt-2">{{ row[0] }}</p>
+      <p class="text-yellow-300 text-3xl mt-2">{{ row[1] }}/100</p>
+      <p class="mt-4 text-gray-300">{{ row[2] }}</p>
+      <p class="mt-2 text-gray-500 text-sm">{{ row[3] }}</p>
     </div>
     {% endfor %}
 
-    <div class="text-center mt-12">
-        <a href="/" class="text-yellow-300 hover:text-yellow-400 text-lg">
-            ← Go Back
-        </a>
-    </div>
+  </div>
 
-</div>
+  <div class="text-center mt-12">
+    <a href="/" class="underline text-gray-300 hover:text-yellow-300 text-lg">← Go Back</a>
+  </div>
+
 </body>
 </html>
