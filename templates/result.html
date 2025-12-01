@@ -1,139 +1,80 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="bg-black text-white">
 <head>
-<meta charset="UTF-8">
-<title>Roast Complete</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8"/>
+  <title>RoastRank — Results</title>
 
-<script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&display=swap" rel="stylesheet">
 
-<style>
-    body {
-        background: black;
-        color: white;
-        overflow-x: hidden;
-        min-height: 100vh;
+  <style>
+    body{font-family:'Roboto Mono',monospace;}
+    .section-title{
+      font-family:'Orbitron';
+      font-size:1.6rem;
+      margin-bottom:0.4rem;
     }
-
-    /* Hyperspace */
-    .star {
-        position: absolute;
-        width: 2px;
-        height: 40px;
-        background: rgba(255,255,255,0.7);
-        animation: warp 1.5s linear infinite;
-    }
-
-    @keyframes warp {
-        from { transform: translateY(-200px) scaleY(0.1); opacity: 0; }
-        to { transform: translateY(120vh) scaleY(1); opacity: 1; }
-    }
-
-    .star:nth-child(odd) { animation-duration: 1.8s; opacity: 0.6; }
-    .star:nth-child(even) { animation-duration: 1.2s; opacity: 0.8; }
-
-    .card {
-        background: rgba(20,20,20,0.65);
-        border-radius: 20px;
-        padding: 26px;
-        margin-top: 24px;
-        box-shadow: 0 0 30px rgba(255,0,80,0.25);
-    }
-</style>
+  </style>
 </head>
 
-<body>
+<body class="px-6 py-12 max-w-3xl mx-auto">
 
-<!-- stars -->
-<script>
-for (let i = 0; i < 120; i++) {
-    const s = document.createElement("div");
-    s.classList.add("star");
-    s.style.left = Math.random()*100 + "vw";
-    s.style.top = Math.random()*100 + "vh";
-    document.body.appendChild(s);
-}
-</script>
+  <h1 class="text-center text-5xl font-black mb-6" style="font-family:Orbitron;">
+    ROAST COMPLETE
+  </h1>
 
-<div class="relative z-10 max-w-3xl mx-auto pt-16 pb-20 px-6">
+  <p class="text-center text-gray-300 mb-4">
+    Candidate: <span class="text-yellow-300">{{ name }}</span>
+  </p>
 
-    <h1 class="text-center text-6xl font-black mb-2"
-        style="text-shadow:0 0 25px #ff3366;">
-        🔥 ROAST COMPLETE
-    </h1>
+  <div class="text-center text-5xl font-black text-yellow-400 mb-10">
+    {{ score }}/100
+  </div>
 
-    <p class="text-center text-xl text-gray-300 mb-10">
-        Candidate: <span class="text-pink-400 font-semibold">{{ name }}</span>
-    </p>
+  <div class="space-y-10">
 
-    <p class="text-center text-7xl font-bold text-yellow-400 mb-4"
-       style="text-shadow:0 0 25px #ffaa00;">
-        {{ score }}/100
-    </p>
-
-    <p class="text-center text-gray-400 mb-8">
-        Evaluation generated successfully
-    </p>
-
-    <!-- ONE LINE -->
-    {% if one_line %}
-    <div class="card">
-        <h2 class="text-pink-400 text-2xl font-bold mb-3">ONE-LINE ROAST</h2>
-        <p class="text-lg leading-relaxed">{{ one_line }}</p>
+    <div>
+      <h2 class="section-title text-red-400">ONE-LINE ROAST</h2>
+      <p>{{ one_line }}</p>
     </div>
-    {% endif %}
 
-    <!-- OVERVIEW -->
-    {% if overview %}
-    <div class="card">
-        <h2 class="text-yellow-300 text-2xl font-bold mb-3">OVERVIEW</h2>
-        <p class="leading-relaxed">{{ overview }}</p>
+    <div>
+      <h2 class="section-title text-yellow-300">OVERVIEW</h2>
+      <p>{{ overview }}</p>
     </div>
-    {% endif %}
 
-    <!-- FULL ROAST -->
     {% if detailed %}
-    <div class="card">
-        <h2 class="text-red-300 text-2xl font-bold mb-3">FULL ROAST</h2>
-        <p class="leading-relaxed">{{ detailed }}</p>
+    <div>
+      <h2 class="section-title text-pink-400">FULL ROAST</h2>
+      <p>{{ detailed }}</p>
     </div>
     {% endif %}
 
-    <!-- STRENGTHS -->
     {% if strengths %}
-    <div class="card">
-        <h2 class="text-green-300 text-2xl font-bold mb-3">STRENGTHS</h2>
-        <p class="leading-relaxed whitespace-pre-line">{{ strengths }}</p>
+    <div>
+      <h2 class="section-title text-green-400">STRENGTHS</h2>
+      <p>{{ strengths }}</p>
     </div>
     {% endif %}
 
-    <!-- IMPROVEMENTS -->
     {% if improvements %}
-    <div class="card">
-        <h2 class="text-blue-300 text-2xl font-bold mb-3">IMPROVEMENTS</h2>
-        <p class="leading-relaxed whitespace-pre-line">{{ improvements }}</p>
+    <div>
+      <h2 class="section-title text-blue-400">IMPROVEMENTS</h2>
+      <p>{{ improvements }}</p>
     </div>
     {% endif %}
 
-    <!-- FUN OBS -->
-    {% if fun_obs %}
-    <div class="card mb-10">
-        <h2 class="text-purple-300 text-2xl font-bold mb-3">FUN OBSERVATION</h2>
-        <p class="leading-relaxed">{{ fun_obs }}</p>
-    </div>
-    {% endif %}
-
-    <!-- Buttons -->
-    <div class="mt-10 flex justify-between text-lg">
-        <a href="/" class="text-yellow-300 hover:text-yellow-400">
-            ← Roast Another
-        </a>
-
-        <a href="/leaderboard" class="text-yellow-300 hover:text-yellow-400">
-            View Leaderboard →
-        </a>
+    <div>
+      <h2 class="section-title text-cyan-300">FUN OBSERVATION</h2>
+      <p>{{ fun_obs }}</p>
     </div>
 
-</div>
+  </div>
+
+  <div class="flex justify-center gap-6 mt-12">
+    <a href="/" class="underline text-gray-300 hover:text-yellow-300">← Roast Another</a>
+    <a href="/leaderboard" class="underline text-gray-300 hover:text-yellow-300">Leaderboard →</a>
+  </div>
+
 </body>
 </html>
