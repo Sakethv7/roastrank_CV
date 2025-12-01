@@ -1,6 +1,6 @@
 import os
-import json
 import sqlite3
+import json
 from datetime import datetime
 from fastapi import FastAPI, Request, UploadFile, Form
 from fastapi.responses import HTMLResponse
@@ -11,15 +11,22 @@ from openai import OpenAI
 import PyPDF2
 from docx import Document
 
-app = FastAPI()
-client = OpenAI()
 
+# ------------------------------------------------------------
+# FASTAPI SETUP
+# ------------------------------------------------------------
+app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
-# DB Setup
-DB = "roasts.db"
-conn = sqlite3.connect(DB, check_same_thread=False)
+client = OpenAI()
+
+
+# ------------------------------------------------------------
+# DATABASE SETUP
+# ------------------------------------------------------------
+DB_PATH = "roasts.db"
+conn = sqlite3.connect(DB_PATH, check_same_thread=False)
 cursor = conn.cursor()
 
 cursor.execute("""
@@ -37,51 +44,55 @@ CREATE TABLE IF NOT EXISTS roasts (
 conn.commit()
 
 
-# --- Extract text ---
-def extract(file: UploadFile):
-    fn = file.filename.lower()
+# ------------------------------------------------------------
+# EXTRACT TEXT
+# ------------------------------------------------------------
+def extract_text_from_file(file: UploadFile) -> str:
+    ext = file.filename.lower()
 
-    if fn.endswith(".pdf"):
+    if ext.endswith(".pdf"):
         reader = PyPDF2.PdfReader(file.file)
-        return "\n".join(p.extract_text() or "" for p in reader.pages)
+        text = ""
+        for page in reader.pages:
+            t = page.extract_text()
+            if t:
+                text += t + "\n"
+        return text
 
-    if fn.endswith(".docx"):
+    elif ext.endswith(".docx"):
         doc = Document(file.file)
         return "\n".join(p.text for p in doc.paragraphs)
 
-    return file.file.read().decode("utf-8", "ignore")
+    else:
+        return file.file.read().decode("utf-8", errors="ignore")
 
 
-# --- Guess name ---
-def guess_name(text: str):
-    first = text.split("\n")[0].strip()
-    if len(first.split()) <= 5:
-        return first
+# ------------------------------------------------------------
+# NAME GUESSER
+# ------------------------------------------------------------
+def guess_name(text: str) -> str:
+    lines = text.split("\n")
+    for line in lines[:5]:
+        cleaned = line.strip()
+        if 2 <= len(cleaned.split()) <= 4 and cleaned.replace(" ", "").isalpha():
+            return cleaned
     return "Anonymous"
 
 
-# --- Roast engine ---
-def roast(text: str, mode: str):
+# ------------------------------------------------------------
+# ROASTING ENGINE (Unified for quick/full)
+# ------------------------------------------------------------
+def roast_resume(text: str, mode: str):
+    BASE_PROMPT = f"""
+You are RoastRank — a brutally funny resume roasting engine.
 
-    QUICK = f"""
-Return ONLY JSON:
-{{
-  "one_line": "",
-  "overview": "",
-  "fun_obs": "",
-  "score": 0
-}}
-Rules:
-- 1 line per field
-- Overview = factual + funny
-- Score 1–100
+RULES:
+- Always return **valid JSON only**.
+- Keep output compact.
+- Humor must be sharp, quick, intelligent (NOT generic compliments).
+- Score must be between 1–100.
 
-Resume:
-{text}
-"""
-
-    FULL = f"""
-Return ONLY JSON:
+JSON FORMAT:
 {{
   "one_line": "",
   "overview": "",
@@ -89,30 +100,43 @@ Return ONLY JSON:
   "fun_obs": "",
   "score": 0
 }}
-Rules:
-- Compact but savage
-- Each field 2–4 lines max
-- Overview = factual + funny
-- No markdown
-Resume:
+
+GUIDELINES:
+- "one_line": A single-line roast, punchy, mean, specific to flaws in the CV.
+- "overview": 3–4 lines. Factual + funny commentary on resume style, structure, vibe.
+- "detailed": 3–5 lines, a deeper roast about structure, content choices, and tone.
+- "fun_obs": 1–2 funny observations about the candidate or resume.
+- Consistent scoring across quick/full. Same scoring logic, only length differs.
+
+Resume Text:
 {text}
 """
 
-    prompt = FULL if mode == "full" else QUICK
+    QUICK_ADDITION = """
+For quick roast:
+- Shorten everything.
+- Still roast properly (no generic lines).
+- Max 1–2 lines per section.
+"""
 
-    res = client.responses.create(
+    FULL_ADDITION = """
+For full roast:
+- Use full length (but still compact).
+- Stronger insults and more detail.
+"""
+
+    full_prompt = BASE_PROMPT + (FULL_ADDITION if mode == "full" else QUICK_ADDITION)
+
+    response = client.responses.create(
         model="gpt-4.1-mini",
-        input=prompt
+        input=full_prompt
     )
 
-    raw = res.output[0].content[0].text
-    raw = raw.replace("```json", "").replace("```", "")
-    raw = raw.replace(",}", "}").replace(",]", "]")
+    raw = response.output[0].content[0].text
 
     try:
         return json.loads(raw)
     except:
-        print("JSON FAIL:", raw)
         return {
             "one_line": "Your CV confused the AI.",
             "overview": "Model failed parsing JSON.",
@@ -122,7 +146,9 @@ Resume:
         }
 
 
-# --- Routes ---
+# ------------------------------------------------------------
+# ROUTES
+# ------------------------------------------------------------
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
@@ -131,20 +157,21 @@ async def home(request: Request):
 @app.post("/upload", response_class=HTMLResponse)
 async def upload(request: Request, file: UploadFile, mode: str = Form(...)):
 
-    text = extract(file)
+    text = extract_text_from_file(file)
     name = guess_name(text)
-    r = roast(text, mode)
+
+    roast = roast_resume(text, mode)
 
     cursor.execute("""
         INSERT INTO roasts (name, score, one_line, overview, detailed, fun_obs, created_at)
         VALUES (?, ?, ?, ?, ?, ?, ?)
     """, (
         name,
-        r["score"],
-        r["one_line"],
-        r.get("overview", ""),
-        r.get("detailed", ""),
-        r.get("fun_obs", ""),
+        roast["score"],
+        roast["one_line"],
+        roast["overview"],
+        roast["detailed"],
+        roast["fun_obs"],
         datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
     ))
     conn.commit()
@@ -152,11 +179,11 @@ async def upload(request: Request, file: UploadFile, mode: str = Form(...)):
     return templates.TemplateResponse("result.html", {
         "request": request,
         "name": name,
-        "score": r["score"],
-        "one_line": r["one_line"],
-        "overview": r.get("overview", ""),
-        "detailed": r.get("detailed", ""),
-        "fun_obs": r.get("fun_obs", "")
+        "score": roast["score"],
+        "one_line": roast["one_line"],
+        "overview": roast["overview"],
+        "detailed": roast["detailed"],
+        "fun_obs": roast["fun_obs"],
     })
 
 
@@ -170,7 +197,15 @@ async def leaderboard(request: Request):
     """)
     rows = cursor.fetchall()
 
-    return templates.TemplateResponse("leaderboard.html", {
-        "request": request,
-        "roasts": rows
-    })
+    return templates.TemplateResponse(
+        "leaderboard.html",
+        {"request": request, "roasts": rows}
+    )
+
+
+# ------------------------------------------------------------
+# LOCAL DEBUG RUN
+# ------------------------------------------------------------
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=7860)
