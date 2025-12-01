@@ -1,360 +1,146 @@
-# Markdown Syntax Guide
-
-## Headings
-
-```markdown
-# H1 - Largest heading
-## H2 - Second level
-### H3 - Third level
-#### H4 - Fourth level
-##### H5 - Fifth level
-###### H6 - Smallest heading
-```
-
-## Text Formatting
-
-```markdown
-**Bold text**
-*Italic text*
-***Bold and italic***
-~~Strikethrough~~
-`Inline code`
-```
-
-**Bold text**  
-*Italic text*  
-***Bold and italic***  
-~~Strikethrough~~  
-`Inline code`
-
-## Lists
-
-### Unordered Lists
-```markdown
-- Item 1
-- Item 2
-  - Nested item 2.1
-  - Nested item 2.2
-- Item 3
-```
-
-- Item 1
-- Item 2
-  - Nested item 2.1
-  - Nested item 2.2
-- Item 3
-
-### Ordered Lists
-```markdown
-1. First item
-2. Second item
-3. Third item
-   1. Nested item 3.1
-   2. Nested item 3.2
-```
-
-1. First item
-2. Second item
-3. Third item
-   1. Nested item 3.1
-   2. Nested item 3.2
-
-## Links
-
-```markdown
-[Link text](https://example.com)
-[Link with title](https://example.com "Hover text")
-```
-
-[Link text](https://example.com)  
-[Link with title](https://example.com "Hover text")
-
-## Images
-
-```markdown
-![Alt text](image-url.jpg)
-![Alt text](image-url.jpg "Optional title")
-```
-
-## Code Blocks
-
-### Inline Code
-```markdown
-Use `code` for inline code
-```
-
-Use `code` for inline code
-
-### Code Blocks with Syntax Highlighting
-````markdown
-```python
-def hello_world():
-    print("Hello, World!")
-```
-
-```javascript
-function helloWorld() {
-    console.log("Hello, World!");
-}
-```
-
-```bash
-git add .
-git commit -m "message"
-```
-````
-
-## Blockquotes
-
-```markdown
-> This is a blockquote
-> It can span multiple lines
->> Nested blockquote
-```
-
-> This is a blockquote  
-> It can span multiple lines
->> Nested blockquote
-
-## Horizontal Rules
-
-```markdown
----
-***
-___
-```
-
----
-
-## Tables
-
-```markdown
-| Header 1 | Header 2 | Header 3 |
-|----------|----------|----------|
-| Row 1    | Data     | Data     |
-| Row 2    | Data     | Data     |
-| Row 3    | Data     | Data     |
-```
-
-| Header 1 | Header 2 | Header 3 |
-|----------|----------|----------|
-| Row 1    | Data     | Data     |
-| Row 2    | Data     | Data     |
-| Row 3    | Data     | Data     |
-
-### Aligned Tables
-
-```markdown
-| Left aligned | Center aligned | Right aligned |
-|:-------------|:--------------:|--------------:|
-| Left         | Center         | Right         |
-| Data         | Data           | Data          |
-```
-
-| Left aligned | Center aligned | Right aligned |
-|:-------------|:--------------:|--------------:|
-| Left         | Center         | Right         |
-| Data         | Data           | Data          |
-
-## Task Lists
-
-```markdown
-- [x] Completed task
-- [ ] Incomplete task
-- [ ] Another task
-  - [x] Nested completed
-  - [ ] Nested incomplete
-```
-
-- [x] Completed task
-- [ ] Incomplete task
-- [ ] Another task
-  - [x] Nested completed
-  - [ ] Nested incomplete
-
-## Emojis (GitHub)
-
-```markdown
-:smile: :heart: :fire: :rocket: :star:
-🔥 💯 ⚡ ✨ 🚀
-```
-
-:smile: :heart: :fire: :rocket: :star:  
-🔥 💯 ⚡ ✨ 🚀
-
-## HTML in Markdown
-
-```markdown
-<details>
-<summary>Click to expand</summary>
-
-Hidden content here
-
-</details>
-```
-
-<details>
-<summary>Click to expand</summary>
-
-Hidden content here
-
-</details>
-
-## Badges (GitHub)
-
-```markdown
-![Build Status](https://img.shields.io/badge/build-passing-brightgreen)
-![License](https://img.shields.io/badge/license-MIT-blue)
-![Python](https://img.shields.io/badge/python-3.10+-blue)
-```
-
-![Build Status](https://img.shields.io/badge/build-passing-brightgreen)
-![License](https://img.shields.io/badge/license-MIT-blue)
-![Python](https://img.shields.io/badge/python-3.10+-blue)
-
-## Footnotes
-
-```markdown
-Here's a sentence with a footnote[^1].
-
-[^1]: This is the footnote content.
-```
-
-Here's a sentence with a footnote[^1].
-
-[^1]: This is the footnote content.
-
-## Definition Lists
-
-```markdown
-Term
-: Definition of the term
-
-Another term
-: Definition of another term
-```
-
-## Escaping Characters
-
-```markdown
-\* Not italic \*
-\# Not a heading
-\[Not a link\](url)
-```
-
-\* Not italic \*  
-\# Not a heading  
-\[Not a link\](url)
-
-## Line Breaks
-
-```markdown
-Line 1  
-Line 2 (two spaces at end of Line 1)
-
-Line 3
-
-Line 4 (blank line between)
-```
-
-Line 1  
-Line 2 (two spaces at end of Line 1)
-
-Line 3
-
-Line 4 (blank line between)
-
-## Comments (GitHub)
-
-```markdown
-<!-- This is a comment and won't be visible -->
-```
-
-<!-- This is a comment and won't be visible -->
-
-## GitHub-Specific Features
-
-### Mentions
-```markdown
-@username
-```
-
-### Issue/PR References
-```markdown
-#123
-username/repo#123
-```
-
-### Commit References
-```markdown
-commit-sha
-username@commit-sha
-username/repo@commit-sha
-```
-
-### Keyboard Keys
-```markdown
-<kbd>Ctrl</kbd> + <kbd>C</kbd>
-```
-
-<kbd>Ctrl</kbd> + <kbd>C</kbd>
-
-## YAML Frontmatter (Hugging Face)
-
-```markdown
----
-title: Project Name
-emoji: 🔥
-colorFrom: red
-colorTo: blue
-sdk: docker
-pinned: false
----
-
-# Your content starts here
-```
-
-## Tips for Good README
-
-1. **Start with a clear title** using `#`
-2. **Add badges** for build status, license, etc.
-3. **Include sections**: Features, Installation, Usage, API
-4. **Use code blocks** with syntax highlighting
-5. **Add images/GIFs** to demonstrate features
-6. **Create a table of contents** for long docs
-7. **Include contributing guidelines**
-8. **Add license information**
-
-## Example README Structure
-
-```markdown
-# Project Name
-
-Brief description
+# RoastRank
+## Overview
+
+RoastRank is an AI-powered resume roasting engine with a cinematic Star-Wars-inspired interface.
+Upload your CV and receive sharp, compact, and brutally funny AI roasts powered by OpenAI.
 
 ## Features
-- Feature 1
-- Feature 2
+Resume Roasting
 
-## Installation
-```bash
-pip install package
-```
+    Quick Roast: fast, punchy one-liner + fun observation
 
-## Usage
-```python
-import package
-package.do_something()
-```
+    Full Roast: one-liner, overview, detailed roast, fun observation
 
-## API Reference
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api`   | GET    | Get data    |
+    Consistent scoring across roast modes
 
-## Contributing
-Pull requests welcome!
+    Star Wars-Inspired UI
+
+    Cinematic intro text scroll
+
+    Animated starfield background
+
+    Neon cyber-sci-fi interface
+
+## Supported File Types
+
+    PDF
+
+    DOCX
+
+    TXT
+
+## Leaderboard
+
+    Displays top 50 roasted candidates
+
+    Auto-extracts candidate names from resumes
+
+## Database
+
+    SQLite storage for all roast entries
+
+Auto-creates tables on launch
+
+## Tech Stack
+    Backend
+
+    Python
+
+    FastAPI
+
+    SQLite
+
+    AI Model
+
+    OpenAI GPT-4.1-mini
+
+    Frontend
+
+    TailwindCSS
+
+    Jinja2 Templates
+
+    Canvas-based starfield animation
+
+    Deployment
+
+    Docker
+
+    Hugging Face Spaces
+
+## Project Structure
+    roastrank/
+    │── main.py
+    │── requirements.txt
+    │── Dockerfile
+    │── README.md
+    │── .env
+    │── static/
+    │     ├── starfield.js
+    │     └── style.css
+    │── templates/
+    │     ├── index.html
+    │     ├── result.html
+    │     └── leaderboard.html
+
+## Local Setup
+1. Clone the Repository
+git clone https://github.com/<your-username>/roastrank
+cd roastrank
+
+2. Create a Virtual Environment
+python3 -m venv .venv
+source .venv/bin/activate
+
+3. Install Dependencies
+pip install -r requirements.txt
+
+4. Add Environment Variables
+
+Create a .env file:
+
+OPENAI_API_KEY=your_key_here
+
+5. Run the Application
+uvicorn main:app --reload --port 7860
+
+6. Open in Browser
+http://localhost:7860
+
+## Deployment on Hugging Face Spaces
+    Add Space Secret
+
+    In Settings → Variables → New Variable:
+
+    OPENAI_API_KEY
+
+    Deploy
+
+    Hugging Face automatically builds and deploys the Docker app.
+
+    API Routes
+    GET /
+
+    Landing page
+
+    POST /upload
+
+    Upload and process the CV
+
+    GET /leaderboard
+
+    View top roasted candidates
 
 ## License
-MIT
-```
+
+MIT License
+
+### If you want, I can also add:
+
+    GitHub badges
+
+    Screenshot previews
+
+    Demo GIF
+
+A dark-themed banner
