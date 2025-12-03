@@ -6,3 +6,4 @@ python-dotenv
 PyPDF2
 python-docx
 openai>=1.0.0
+beautifulsoup4

@@ -1,65 +1,61 @@
 <!DOCTYPE html>
 <html lang="en" class="bg-black text-white">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Leaderboard</title>
+    <meta charset="UTF-8">
+    <title>Leaderboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/static/starfield.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
 
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
-
-  <style>
-    body { font-family: 'Roboto Mono', monospace; }
-    .glow { text-shadow: 0 0 10px gold; }
-  </style>
+    <style>
+        body { font-family: 'Roboto Mono', monospace; }
+    </style>
 </head>
 
-<body class="min-h-screen bg-black text-white px-6 py-10">
+<body class="relative min-h-screen">
 
-  <div class="max-w-4xl mx-auto">
+<canvas id="starfield" class="absolute inset-0"></canvas>
 
-    <!-- Title -->
-    <h1 class="text-center text-5xl font-black glow mb-10"
-        style="font-family:'Orbitron',sans-serif;">
-      LEADERBOARD
+<main class="relative z-10 max-w-3xl mx-auto py-20 px-6">
+
+    <h1 class="text-center text-5xl font-black mb-12"
+        style="font-family:'Orbitron',sans-serif; text-shadow:0 0 16px gold;">
+        LEADERBOARD
     </h1>
 
-    <!-- Table -->
-    <div class="overflow-x-auto">
-      <table class="w-full text-left border-collapse">
-        <thead>
-          <tr class="border-b border-gray-700 text-yellow-300">
-            <th class="py-3 px-2">Rank</th>
-            <th class="py-3 px-2">Name</th>
-            <th class="py-3 px-2">Score</th>
-            <th class="py-3 px-2">One-Liner</th>
-            <th class="py-3 px-2">Time</th>
-          </tr>
-        </thead>
-        <tbody>
+    {% if roasts %}
+        <div class="space-y-8">
+            {% for r in roasts %}
+                <div class="border border-gray-700 bg-gray-900 bg-opacity-40 rounded-xl p-6 shadow-xl">
+                    <p class="text-xl font-bold text-yellow-300 mb-2">
+                        {{ loop.index }}. {{ r[0] }}
+                    </p>
 
-        {% for name, score, one_line, created_at in roasts %}
-          <tr class="border-b border-gray-800 hover:bg-gray-900/40 transition">
-            <td class="py-3 px-2 text-gray-300">{{ loop.index }}</td>
-            <td class="py-3 px-2 text-yellow-400">{{ name }}</td>
-            <td class="py-3 px-2 text-yellow-300 font-bold">{{ score }}</td>
-            <td class="py-3 px-2 text-gray-400 max-w-xs truncate">{{ one_line }}</td>
-            <td class="py-3 px-2 text-gray-500">{{ created_at }}</td>
-          </tr>
-        {% endfor %}
+                    <p class="text-3xl font-bold text-red-400 mb-3">{{ r[1] }}/100</p>
 
-        </tbody>
-      </table>
+                    <p class="text-gray-300 mb-3">{{ r[2] }}</p>
+
+                    <p class="text-gray-500 text-sm">{{ r[3] }}</p>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-center text-gray-300">No roasts yet.</p>
+    {% endif %}
+
+    <div class="text-center mt-12">
+        <a href="/" class="underline text-gray-300 hover:text-yellow-300">
+            ← Back to Upload
+        </a>
     </div>
 
-    <!-- Back -->
-    <div class="text-center mt-10">
-      <a href="/" class="underline text-gray-300 hover:text-yellow-300">
-        ← Back to Home
-      </a>
-    </div>
+</main>
 
-  </div>
+<script>
+    window.onload = function() {
+        startStarfield();
+    };
+</script>
 
 </body>
 </html>
