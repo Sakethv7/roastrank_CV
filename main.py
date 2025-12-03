@@ -1,7 +1,10 @@
 import os
 import sqlite3
 import json
+import zipfile
+import io
 from datetime import datetime
+
 from fastapi import FastAPI, Request, UploadFile, Form
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -9,22 +12,23 @@ from fastapi.templating import Jinja2Templates
 
 from openai import OpenAI
 import PyPDF2
-from docx import Document
+from bs4 import BeautifulSoup  # NEW for docx XML parsing
 
 
-# ------------------------------------------------------------
-# FASTAPI SETUP
-# ------------------------------------------------------------
+# --------------------------------------------------------------------
+# FASTAPI APP
+# --------------------------------------------------------------------
 app = FastAPI()
+
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
 client = OpenAI()
 
 
-# ------------------------------------------------------------
+# --------------------------------------------------------------------
 # DATABASE SETUP
-# ------------------------------------------------------------
+# --------------------------------------------------------------------
 DB_PATH = "roasts.db"
 conn = sqlite3.connect(DB_PATH, check_same_thread=False)
 cursor = conn.cursor()
@@ -36,7 +40,6 @@ CREATE TABLE IF NOT EXISTS roasts (
     score INTEGER,
     one_line TEXT,
     overview TEXT,
-    detailed TEXT,
     fun_obs TEXT,
     created_at TEXT
 )
@@ -44,111 +47,147 @@ CREATE TABLE IF NOT EXISTS roasts (
 conn.commit()
 
 
-# ------------------------------------------------------------
-# EXTRACT TEXT
-# ------------------------------------------------------------
+# --------------------------------------------------------------------
+# TEXT EXTRACTION
+# --------------------------------------------------------------------
 def extract_text_from_file(file: UploadFile) -> str:
+    """Extract text safely from PDF, DOCX, or TXT."""
+
     ext = file.filename.lower()
 
+    # --- PDF ---
     if ext.endswith(".pdf"):
-        reader = PyPDF2.PdfReader(file.file)
-        text = ""
-        for page in reader.pages:
-            t = page.extract_text()
-            if t:
-                text += t + "\n"
-        return text
+        try:
+            reader = PyPDF2.PdfReader(file.file)
+            return "\n".join(page.extract_text() or "" for page in reader.pages)
+        except:
+            return ""
 
+    # --- DOCX SAFE PARSER (no seek errors) ---
     elif ext.endswith(".docx"):
-        doc = Document(file.file)
-        return "\n".join(p.text for p in doc.paragraphs)
+        try:
+            file.file.seek(0)
+            data = file.file.read()
 
+            with zipfile.ZipFile(io.BytesIO(data)) as z:
+                with z.open("word/document.xml") as doc_xml:
+                    soup = BeautifulSoup(doc_xml.read(), "xml")
+                    return " ".join(t.get_text() for t in soup.find_all("w:t"))
+        except:
+            return ""
+
+    # --- TXT fallback ---
     else:
-        return file.file.read().decode("utf-8", errors="ignore")
+        try:
+            return file.file.read().decode("utf-8", errors="ignore")
+        except:
+            return ""
 
 
-# ------------------------------------------------------------
-# NAME GUESSER
-# ------------------------------------------------------------
+# --------------------------------------------------------------------
+# AI-POWERED NAME EXTRACTION
+# --------------------------------------------------------------------
 def guess_name(text: str) -> str:
-    lines = text.split("\n")
-    for line in lines[:5]:
-        cleaned = line.strip()
-        if 2 <= len(cleaned.split()) <= 4 and cleaned.replace(" ", "").isalpha():
-            return cleaned
-    return "Anonymous"
+    """Extract candidate's name using LLM (most reliable)."""
+
+    prompt = f"""
+Extract ONLY the candidate's real full name from this resume.
+Rules:
+- 1–4 words max.
+- No email, no phone numbers, no punctuation.
+- If unsure, return: Anonymous
+
+Resume:
+{text[:2000]}
+"""
+
+    try:
+        resp = client.responses.create(
+            model="gpt-4.1-mini",
+            input=prompt
+        )
+
+        name = resp.output_text().strip()
+
+        # sanity check
+        if 1 <= len(name.split()) <= 4:
+            return name
+
+        return "Anonymous"
+
+    except:
+        return "Anonymous"
 
 
-# ------------------------------------------------------------
-# ROASTING ENGINE (Unified for quick/full)
-# ------------------------------------------------------------
+# --------------------------------------------------------------------
+# ROAST GENERATION (STRONGER PROMPTS)
+# --------------------------------------------------------------------
 def roast_resume(text: str, mode: str):
-    BASE_PROMPT = f"""
-You are RoastRank — a brutally funny resume roasting engine.
+    """Generate a roast (quick = short + spicy, full = deeper + still spicy)."""
 
-RULES:
-- Always return **valid JSON only**.
-- Keep output compact.
-- Humor must be sharp, quick, intelligent (NOT generic compliments).
-- Score must be between 1–100.
+    if mode == "quick":
+        prompt = f"""
+You are RoastRank, a brutally honest but hilarious resume roaster.
+Give SHORT but MEAN roasts.
 
-JSON FORMAT:
-{{
-  "one_line": "",
-  "overview": "",
-  "detailed": "",
-  "fun_obs": "",
-  "score": 0
-}}
+Respond ONLY in JSON with keys:
+one_line, overview, fun_obs, score
 
-GUIDELINES:
-- "one_line": A single-line roast, punchy, mean, specific to flaws in the CV.
-- "overview": 3–4 lines. Factual + funny commentary on resume style, structure, vibe.
-- "detailed": 3–5 lines, a deeper roast about structure, content choices, and tone.
-- "fun_obs": 1–2 funny observations about the candidate or resume.
-- Consistent scoring across quick/full. Same scoring logic, only length differs.
+Rules:
+- one_line: 1 brutal line.
+- overview: 2 funny factual lines about resume quality.
+- fun_obs: 1 witty observation.
+- score: integer 1–100.
 
-Resume Text:
+Resume:
+{text}
+"""
+    else:
+        prompt = f"""
+You are RoastRank, a savage expert in mocking resumes.
+Give a FUNNY but COMPACT roast. No long essays.
+
+Respond ONLY in JSON with keys:
+one_line, overview, fun_obs, score
+
+Rules:
+- one_line: One punchline roast.
+- overview: 3–4 lines MAX. Funny but factual.
+- fun_obs: 1–2 lines MAX.
+- score: integer 1–100.
+
+IMPORTANT:
+Keep quick roast & full roast scores within a similar range (±15).
+No generic compliments. Be witty, sarcastic, and smart.
+
+Resume:
 {text}
 """
 
-    QUICK_ADDITION = """
-For quick roast:
-- Shorten everything.
-- Still roast properly (no generic lines).
-- Max 1–2 lines per section.
-"""
-
-    FULL_ADDITION = """
-For full roast:
-- Use full length (but still compact).
-- Stronger insults and more detail.
-"""
-
-    full_prompt = BASE_PROMPT + (FULL_ADDITION if mode == "full" else QUICK_ADDITION)
-
-    response = client.responses.create(
-        model="gpt-4.1-mini",
-        input=full_prompt
-    )
-
-    raw = response.output[0].content[0].text
-
+    # ---- Make the request ----
     try:
-        return json.loads(raw)
-    except:
+        resp = client.responses.create(
+            model="gpt-4.1",
+            input=prompt
+        )
+
+        raw = resp.output_text().strip()
+        data = json.loads(raw)
+        return data
+
+    except Exception as e:
+        print("ERROR PARSING ROAST:", e)
         return {
             "one_line": "Your CV confused the AI.",
             "overview": "Model failed parsing JSON.",
-            "detailed": "",
             "fun_obs": "",
-            "score": 1
+            "score": 10
         }
 
 
-# ------------------------------------------------------------
+# --------------------------------------------------------------------
 # ROUTES
-# ------------------------------------------------------------
+# --------------------------------------------------------------------
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
@@ -156,21 +195,19 @@ async def home(request: Request):
 
 @app.post("/upload", response_class=HTMLResponse)
 async def upload(request: Request, file: UploadFile, mode: str = Form(...)):
-
     text = extract_text_from_file(file)
     name = guess_name(text)
 
     roast = roast_resume(text, mode)
 
     cursor.execute("""
-        INSERT INTO roasts (name, score, one_line, overview, detailed, fun_obs, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO roasts (name, score, one_line, overview, fun_obs, created_at)
+        VALUES (?, ?, ?, ?, ?, ?)
     """, (
         name,
         roast["score"],
         roast["one_line"],
         roast["overview"],
-        roast["detailed"],
         roast["fun_obs"],
         datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
     ))
@@ -182,7 +219,6 @@ async def upload(request: Request, file: UploadFile, mode: str = Form(...)):
         "score": roast["score"],
         "one_line": roast["one_line"],
         "overview": roast["overview"],
-        "detailed": roast["detailed"],
         "fun_obs": roast["fun_obs"],
     })
 
@@ -197,283 +233,12 @@ async def leaderboard(request: Request):
     """)
     rows = cursor.fetchall()
 
-    return templates.TemplateResponse(
-        "leaderboard.html",
-        {"request": request, "roasts": rows}
-    )
-
-
-# ------------------------------------------------------------
-# LOCAL DEBUG RUN
-# ------------------------------------------------------------
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=7860)
-import os
-import io
-import json
-import sqlite3
-from datetime import datetime
-from fastapi import FastAPI, Request, UploadFile, Form, File
-from fastapi.responses import HTMLResponse
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
-
-from openai import OpenAI
-import PyPDF2
-from docx import Document
-
-# ------------------------------------------------------------
-# INITIALIZE APP
-# ------------------------------------------------------------
-app = FastAPI()
-
-app.mount("/static", StaticFiles(directory="static"), name="static")
-templates = Jinja2Templates(directory="templates")
-
-client = OpenAI()
-
-# ------------------------------------------------------------
-# DATABASE SETUP
-# ------------------------------------------------------------
-DB_PATH = "roasts.db"
-conn = sqlite3.connect(DB_PATH, check_same_thread=False)
-cursor = conn.cursor()
-
-cursor.execute("""
-CREATE TABLE IF NOT EXISTS roasts (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT,
-    score INTEGER,
-    one_line TEXT,
-    overview TEXT,
-    detailed TEXT,
-    improvements TEXT,
-    fun_obs TEXT,
-    created_at TEXT
-)
-""")
-conn.commit()
-
-# ------------------------------------------------------------
-# TEXT EXTRACTION — NOW BULLETPROOF FOR PDF / DOCX / TXT
-# ------------------------------------------------------------
-async def extract_text_from_file(file: UploadFile) -> str:
-    fname = file.filename.lower()
-
-    # Read bytes first — works for everything
-    raw = await file.read()
-
-    # ----- PDF -----
-    if fname.endswith(".pdf"):
-        try:
-            reader = PyPDF2.PdfReader(io.BytesIO(raw))
-            return "\n".join(page.extract_text() or "" for page in reader.pages)
-        except:
-            return ""
-
-    # ----- DOCX -----
-    elif fname.endswith(".docx"):
-        try:
-            doc = Document(io.BytesIO(raw))
-            return "\n".join(p.text for p in doc.paragraphs)
-        except:
-            return ""
-
-    # ----- DOC (old MS Word) -----
-    elif fname.endswith(".doc"):
-        # Try to decode something usable
-        try:
-            return raw.decode(errors="ignore")
-        except:
-            return ""
-
-    # ----- TXT -----
-    else:
-        try:
-            return raw.decode("utf-8", errors="ignore")
-        except:
-            return ""
-
-
-# ------------------------------------------------------------
-# NAME DETECTION
-# ------------------------------------------------------------
-def guess_name(text: str) -> str:
-    lines = [l.strip() for l in text.split("\n") if l.strip()]
-
-    if len(lines) == 0:
-        return "Anonymous"
-
-    first = lines[0]
-    parts = first.split()
-
-    # Basic heuristic — works for most resumes
-    if 2 <= len(parts) <= 4 and all(p.replace(".", "").isalpha() for p in parts):
-        return first
-
-    return "Anonymous"
-
-
-# ------------------------------------------------------------
-# JSON CLEANER
-# ------------------------------------------------------------
-def try_parse_json(block: str):
-    block = block.replace("```json", "").replace("```", "")
-    block = block.replace("\n", " ")
-
-    # Fix trailing commas
-    block = block.replace(", }", "}")
-    block = block.replace(", ]", "]")
-
-    try:
-        return json.loads(block)
-    except:
-        return None
-
-
-# ------------------------------------------------------------
-# ROASTING ENGINE
-# ------------------------------------------------------------
-def roast_resume(text: str, mode: str):
-
-    # QUICK MODE → short, fun, but still JSON
-    QUICK_PROMPT = f"""
-You are RoastRank, a savage resume roasting AI.
-
-Return ONLY JSON with these keys:
-one_line
-overview
-fun_obs
-score
-
-Rules:
-- Be funny.
-- Be compact (1–2 lines per field).
-- Score must be realistically between 20 and 95.
-- one_line MUST be a roast, not generic.
-
-Resume:
-{text}
-"""
-
-    # FULL MODE → full sections, still compact
-    FULL_PROMPT = f"""
-You are RoastRank, a galactic CV roasting engine.
-
-Return ONLY JSON with these keys:
-one_line
-overview
-detailed
-improvements
-fun_obs
-score
-
-Rules:
-- Every field ≤ 3 tight lines.
-- Punchy and funny.
-- Score between 20 and 95.
-- Do NOT return explanations, only JSON.
-
-Resume:
-{text}
-"""
-
-    prompt = FULL_PROMPT if mode == "full" else QUICK_PROMPT
-
-    res = client.responses.create(
-        model="gpt-4.1-mini",
-        input=prompt
-    )
-
-    output = res.output_text
-
-    data = try_parse_json(output)
-
-    # If LLM fails → fallback roast
-    if not data:
-        return {
-            "one_line": "Your resume confused the AI — that's already a roast.",
-            "overview": "The model failed to extract structured output.",
-            "detailed": "",
-            "improvements": "",
-            "fun_obs": "Even the AI rage quit.",
-            "score": 25
-        }
-
-    return data
-
-
-# ------------------------------------------------------------
-# ROUTES
-# ------------------------------------------------------------
-@app.get("/", response_class=HTMLResponse)
-async def home(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
-
-
-@app.post("/upload", response_class=HTMLResponse)
-async def upload(
-    request: Request,
-    file: UploadFile = File(...),
-    mode: str = Form("quick")
-):
-
-    text = await extract_text_from_file(file)
-    name = guess_name(text)
-
-    roast = roast_resume(text, mode)
-
-    score = roast.get("score", 50)
-    
-    one_line = roast.get("one_line", "")
-    overview = roast.get("overview", "")
-    detailed = roast.get("detailed", "")
-    improvements = roast.get("improvements", "")
-    fun_obs = roast.get("fun_obs", "")
-
-    # Store
-    cursor.execute("""
-        INSERT INTO roasts (name, score, one_line, overview, detailed, improvements, fun_obs, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    """, (
-        name, score, one_line, overview, detailed,
-        improvements, fun_obs,
-        datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
-    ))
-    conn.commit()
-
-    return templates.TemplateResponse("result.html", {
-        "request": request,
-        "name": name,
-        "score": score,
-        "one_line": one_line,
-        "overview": overview,
-        "detailed": detailed,
-        "improvements": improvements,
-        "fun_obs": fun_obs
-    })
-
-
-@app.get("/leaderboard", response_class=HTMLResponse)
-async def leaderboard(request: Request):
-    cursor.execute("""
-        SELECT name, score, one_line, created_at
-        FROM roasts
-        ORDER BY score DESC, created_at DESC
-        LIMIT 100
-    """)
-    data = cursor.fetchall()
-
     return templates.TemplateResponse("leaderboard.html", {
         "request": request,
-        "roasts": data
+        "roasts": rows
     })
 
 
-# ------------------------------------------------------------
-# RUN APP (ignored on HuggingFace)
-# ------------------------------------------------------------
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=7860)
+# Hugging Face handles uvicorn, so no __main__ needed.
+
+

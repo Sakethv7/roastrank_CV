@@ -2,51 +2,64 @@
 <html lang="en" class="bg-black text-white">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Leaderboard</title>
+
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="/static/starfield.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
 
   <style>
-    #starfield {
-      position: fixed !important;
-      top:0; left:0;
-      width:100%; height:100%;
-      z-index:0;
-      pointer-events:none;
-    }
+    body { font-family: 'Roboto Mono', monospace; }
+    .glow { text-shadow: 0 0 10px gold; }
   </style>
 </head>
 
-<body>
-<canvas id="starfield"></canvas>
+<body class="min-h-screen bg-black text-white px-6 py-10">
 
-<div class="relative z-10 max-w-3xl mx-auto px-6 py-16">
+  <div class="max-w-4xl mx-auto">
 
-  <h1 class="text-center text-6xl font-black mb-10" style="font-family:Orbitron;">
-    LEADERBOARD
-  </h1>
+    <!-- Title -->
+    <h1 class="text-center text-5xl font-black glow mb-10"
+        style="font-family:'Orbitron',sans-serif;">
+      LEADERBOARD
+    </h1>
 
-  <div class="space-y-6">
+    <!-- Table -->
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="border-b border-gray-700 text-yellow-300">
+            <th class="py-3 px-2">Rank</th>
+            <th class="py-3 px-2">Name</th>
+            <th class="py-3 px-2">Score</th>
+            <th class="py-3 px-2">One-Liner</th>
+            <th class="py-3 px-2">Time</th>
+          </tr>
+        </thead>
+        <tbody>
 
-    {% for name, score, one_line, created_at in roasts %}
-    <div class="border border-gray-700 rounded-xl p-4 bg-black/40">
-      <div class="flex justify-between">
-        <h2 class="text-xl font-bold text-yellow-300">{{ name }}</h2>
-        <p class="text-3xl font-black text-red-300">{{ score }}</p>
-      </div>
+        {% for name, score, one_line, created_at in roasts %}
+          <tr class="border-b border-gray-800 hover:bg-gray-900/40 transition">
+            <td class="py-3 px-2 text-gray-300">{{ loop.index }}</td>
+            <td class="py-3 px-2 text-yellow-400">{{ name }}</td>
+            <td class="py-3 px-2 text-yellow-300 font-bold">{{ score }}</td>
+            <td class="py-3 px-2 text-gray-400 max-w-xs truncate">{{ one_line }}</td>
+            <td class="py-3 px-2 text-gray-500">{{ created_at }}</td>
+          </tr>
+        {% endfor %}
 
-      <p class="text-gray-300 mt-2">{{ one_line }}</p>
-      <p class="text-xs text-gray-500 mt-2">{{ created_at }}</p>
+        </tbody>
+      </table>
     </div>
-    {% endfor %}
+
+    <!-- Back -->
+    <div class="text-center mt-10">
+      <a href="/" class="underline text-gray-300 hover:text-yellow-300">
+        ← Back to Home
+      </a>
+    </div>
 
   </div>
 
-  <div class="text-center mt-12">
-    <a href="/" class="underline hover:text-yellow-300">← Back</a>
-  </div>
-
-</div>
-
-<script> startStarfield(); </script>
 </body>
 </html>
