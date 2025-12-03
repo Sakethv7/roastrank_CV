@@ -15,8 +15,9 @@ from openai import OpenAI
 import PyPDF2
 from docx import Document
 
+
 # ============================================================
-# FASTAPI APP INIT
+# FASTAPI INIT
 # ============================================================
 app = FastAPI()
 
@@ -24,6 +25,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
 client = OpenAI()
+
 
 # ============================================================
 # DATABASE INIT
@@ -45,116 +47,103 @@ CREATE TABLE IF NOT EXISTS roasts (
 """)
 conn.commit()
 
+
 # ============================================================
-# TEXT EXTRACTION (PDF / DOCX / DOC / TXT)
+# FILE → TEXT EXTRACTION
 # ============================================================
 
-def extract_text_from_file(file: UploadFile) -> str:
-    """
-    Fully robust text extraction that works for:
-    PDF, DOCX, DOC, TXT.
-    Includes fallbacks for failed or empty extractions.
-    """
+def extract_text_from_pdf(raw_bytes: bytes) -> str:
+    """Try PyPDF2 first, then pdftotext for reliability."""
+    text = ""
 
-    ext = file.filename.lower()
-    raw_bytes = file.file.read()
+    # ---------- Try PyPDF2 ----------
+    try:
+        reader = PyPDF2.PdfReader(io.BytesIO(raw_bytes))
+        for p in reader.pages:
+            chunk = p.extract_text()
+            if chunk:
+                text += chunk + "\n"
+    except:
+        pass
 
-    # -------------------- PDF ------------------------------
-    if ext.endswith(".pdf"):
-
-        # 1) Try pdftotext (best)
-        try:
-            with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
-                tmp.write(raw_bytes)
-                tmp_path = tmp.name
-
-            try:
-                text = subprocess.check_output(
-                    ["pdftotext", tmp_path, "-"],
-                    text=True,
-                    stderr=subprocess.DEVNULL
-                )
-            except:
-                text = ""
-
-            os.remove(tmp_path)
-
-            if text and len(text.strip()) > 20:
-                return text
-
-        except Exception:
-            pass
-
-        # 2) PyPDF2 fallback
-        try:
-            reader = PyPDF2.PdfReader(io.BytesIO(raw_bytes))
-            text = "\n".join((page.extract_text() or "") for page in reader.pages)
-            if text.strip():
-                return text
-        except:
-            pass
-
-        # 3) Final fallback
-        return "PDF extraction failed — no readable text found."
-
-    # -------------------- DOCX ------------------------------
-    if ext.endswith(".docx"):
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".docx") as tmp:
+    # If PyPDF2 failed or returned empty → try poppler's pdftotext
+    if len(text.strip()) < 20:  
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
             tmp.write(raw_bytes)
-            tmp_path = tmp.name
-
-        try:
-            doc = Document(tmp_path)
-            text = "\n".join(p.text for p in doc.paragraphs)
-        finally:
-            os.remove(tmp_path)
-
-        return text
-
-    # -------------------- DOC -------------------------------
-    if ext.endswith(".doc"):
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".doc") as tmp:
-            tmp.write(raw_bytes)
-            tmp_path = tmp.name
+            pdf_path = tmp.name
 
         try:
             text = subprocess.check_output(
-                ["antiword", tmp_path],
+                ["pdftotext", pdf_path, "-"],
                 text=True,
                 stderr=subprocess.DEVNULL
             )
         except:
-            text = "DOC extraction failed."
+            text = ""
+
+        os.remove(pdf_path)
+
+    return text.strip()
+
+
+def extract_text_from_file(file: UploadFile) -> str:
+    filename = file.filename.lower()
+    raw = file.file.read()
+
+    # -------- PDF --------
+    if filename.endswith(".pdf"):
+        return extract_text_from_pdf(raw)
+
+    # -------- DOCX --------
+    if filename.endswith(".docx"):
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".docx") as tmp:
+            tmp.write(raw)
+            path = tmp.name
+
+        try:
+            doc = Document(path)
+            text = "\n".join(p.text for p in doc.paragraphs)
         finally:
-            os.remove(tmp_path)
+            os.remove(path)
 
         return text
 
-    # -------------------- TXT -------------------------------
-    return raw_bytes.decode(errors="ignore")
+    # -------- DOC (requires antiword) --------
+    if filename.endswith(".doc"):
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".doc") as tmp:
+            tmp.write(raw)
+            path = tmp.name
+
+        try:
+            out = subprocess.check_output(["antiword", path], text=True)
+        except:
+            out = ""
+        finally:
+            os.remove(path)
+
+        return out
+
+    # -------- TXT --------
+    return raw.decode(errors="ignore")
+
 
 # ============================================================
 # NAME DETECTION
 # ============================================================
-
 def guess_name(text: str) -> str:
-    lines = text.split("\n")[:8]
-
-    for line in lines:
-        cleaned = line.strip()
-        if 2 <= len(cleaned.split()) <= 4:
-            if all(c.isalpha() or c == " " for c in cleaned):
-                return cleaned.title()
-
+    for line in text.split("\n")[:5]:
+        l = line.strip()
+        if 2 <= len(l.split()) <= 4 and all(c.isalpha() or c == " " for c in l):
+            return l
     return "Anonymous"
 
-# ============================================================
-# SAFE JSON PARSE
-# ============================================================
 
-def safe_json_extract(model_output: str):
+# ============================================================
+# JSON CLEANER
+# ============================================================
+def safe_json_extract(raw: str):
     try:
-        return json.loads(model_output)
+        return json.loads(raw)
     except:
         return {
             "one_line": "Your CV confused the AI.",
@@ -163,47 +152,35 @@ def safe_json_extract(model_output: str):
             "score": 1
         }
 
-# ============================================================
-# ROAST GENERATION
-# ============================================================
 
+# ============================================================
+# ROAST ENGINE
+# ============================================================
 def roast_resume(text: str, mode: str):
-    if mode == "quick":
-        prompt = f"""
-You are RoastRank — a short and punchy roast generator.
+    if len(text.strip()) < 30:
+        return {
+            "one_line": "Your PDF looks emptier than a fresher’s LinkedIn.",
+            "overview": "No readable text found in your file.",
+            "fun_obs": "Try exporting your resume as a real PDF.",
+            "score": 1
+        }
 
-Return ONLY JSON with keys:
+    prompt = f"""
+You are RoastRank — a savage but funny resume roasting AI.
+Return ONLY VALID JSON with:
+
 one_line
 overview
 fun_obs
 score
 
 Rules:
-- one_line: must roast.
-- overview: 1–2 funny factual lines.
-- fun_obs: 1 witty punchline.
+- one_line: savage + short.
+- overview: factual but funny (2–3 lines).
+- fun_obs: one funny punchline.
 - score: integer 1–100.
 
-Resume:
-{text}
-"""
-    else:
-        prompt = f"""
-You are RoastRank — the galactic emperor of resume roasting.
-
-Return ONLY JSON with keys:
-one_line
-overview
-fun_obs
-score
-
-Rules:
-- one_line: savage but short.
-- overview: 2–3 lines, funny but based on resume truth.
-- fun_obs: 1 comedic observation.
-- score: integer 1–100.
-
-Resume:
+Resume text:
 {text}
 """
 
@@ -218,22 +195,22 @@ Resume:
     except:
         return {
             "one_line": "AI malfunction: roast overload.",
-            "overview": "",
-            "fun_obs": "",
+            "overview": "Model produced invalid output.",
+            "fun_obs": "Maybe your CV scared the model.",
             "score": 1
         }
+
 
 # ============================================================
 # ROUTES
 # ============================================================
-
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
+
 @app.post("/upload", response_class=HTMLResponse)
 async def upload(request: Request, file: UploadFile, mode: str = Form(...)):
-
     text = extract_text_from_file(file)
     name = guess_name(text)
     roast = roast_resume(text, mode)
@@ -260,6 +237,7 @@ async def upload(request: Request, file: UploadFile, mode: str = Form(...)):
         "fun_obs": roast["fun_obs"]
     })
 
+
 @app.get("/leaderboard", response_class=HTMLResponse)
 async def leaderboard(request: Request):
     cursor.execute("""
@@ -275,9 +253,7 @@ async def leaderboard(request: Request):
         {"request": request, "roasts": rows}
     )
 
-# ============================================================
-# RUN LOCALLY
-# ============================================================
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=7860)

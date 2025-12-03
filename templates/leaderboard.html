@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html lang="en" class="bg-black text-white">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Leaderboard</title>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="/static/starfield.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
 
     <style>
         body { font-family: 'Roboto Mono', monospace; }
@@ -14,47 +15,44 @@
 
 <body class="relative min-h-screen">
 
-<canvas id="starfield" class="absolute inset-0"></canvas>
+<canvas id="starfield"></canvas>
 
-<main class="relative z-10 max-w-3xl mx-auto py-20 px-6">
+<div class="relative z-10 max-w-3xl mx-auto px-6 py-20">
 
-    <h1 class="text-center text-5xl font-black mb-12"
-        style="font-family:'Orbitron',sans-serif; text-shadow:0 0 16px gold;">
+    <h1 class="text-center text-5xl font-bold mb-10"
+        style="font-family: 'Orbitron'; text-shadow: 0 0 16px gold;">
         LEADERBOARD
     </h1>
 
     {% if roasts %}
-        <div class="space-y-8">
+        <div class="space-y-6">
             {% for r in roasts %}
-                <div class="border border-gray-700 bg-gray-900 bg-opacity-40 rounded-xl p-6 shadow-xl">
-                    <p class="text-xl font-bold text-yellow-300 mb-2">
-                        {{ loop.index }}. {{ r[0] }}
-                    </p>
-
-                    <p class="text-3xl font-bold text-red-400 mb-3">{{ r[1] }}/100</p>
-
-                    <p class="text-gray-300 mb-3">{{ r[2] }}</p>
-
-                    <p class="text-gray-500 text-sm">{{ r[3] }}</p>
+            <div class="bg-gray-900/50 p-5 rounded-xl border border-gray-700 shadow-md">
+                <div class="flex justify-between">
+                    <p class="font-bold text-yellow-300">{{ r[0] }}</p>
+                    <p class="text-yellow-500 font-bold">{{ r[1] }}/100</p>
                 </div>
+
+                <p class="text-gray-300 mt-2">“{{ r[2] }}”</p>
+
+                <p class="text-xs text-gray-500 mt-2">
+                    {{ r[3] }}
+                </p>
+            </div>
             {% endfor %}
         </div>
     {% else %}
-        <p class="text-center text-gray-300">No roasts yet.</p>
+        <p class="text-center text-gray-400">No roasts yet.</p>
     {% endif %}
 
-    <div class="text-center mt-12">
-        <a href="/" class="underline text-gray-300 hover:text-yellow-300">
-            ← Back to Upload
-        </a>
+    <div class="text-center mt-10">
+        <a href="/" class="underline text-gray-300 hover:text-yellow-300">← Back Home</a>
     </div>
 
-</main>
+</div>
 
 <script>
-    window.onload = function() {
-        startStarfield();
-    };
+    window.onload = () => startStarfield();
 </script>
 
 </body>
