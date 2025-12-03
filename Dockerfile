@@ -1,22 +1,23 @@
 FROM python:3.10-slim
 
-# Install system dependencies
+# Install system dependencies for PDF + DOC extraction
 RUN apt-get update && apt-get install -y \
     build-essential \
     poppler-utils \
+    antiword \
+    libxml2 \
+    libxslt1.1 \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# Copy requirements first (better caching)
+# Copy requirements first for caching
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the rest of the app
+# Copy rest of your application
 COPY . .
 
-# Expose port 7860 (required by HF)
 EXPOSE 7860
 
-# Better FastAPI/uvicorn command
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "7860"]
