@@ -425,6 +425,7 @@ async def upload(
     roast = roast_resume(text, mode)
 
     score = roast.get("score", 50)
+    
     one_line = roast.get("one_line", "")
     overview = roast.get("overview", "")
     detailed = roast.get("detailed", "")
