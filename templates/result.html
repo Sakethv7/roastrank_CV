@@ -1,68 +1,58 @@
 <!DOCTYPE html>
-<html lang="en" class="bg-black text-white overflow-x-hidden">
+<html lang="en" class="bg-black text-white">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <title>Roast Complete</title>
 
-    <title>Roast Complete</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;900&family=Roboto+Mono:wght@300;400&display=swap" rel="stylesheet">
 
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="/static/starfield.js"></script>
+  <script src="/static/starfield.js"></script>
 
-    <style>
-        body { font-family: 'Roboto Mono', monospace; }
-    </style>
+  <style>
+    body { font-family: 'Roboto Mono', monospace; }
+
+    #starfield {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+    }
+  </style>
 </head>
 
-<body class="relative min-h-screen">
+<body>
+  <canvas id="starfield"></canvas>
 
-<canvas id="starfield"></canvas>
+  <main class="relative z-10 max-w-2xl mx-auto px-6 pt-20 pb-32">
 
-<div class="relative z-10 max-w-3xl mx-auto px-6 py-20">
-
-    <h1 class="text-center text-5xl font-bold mb-10"
-        style="font-family: 'Orbitron'; text-shadow: 0 0 16px #FFD700;">
-        ROAST COMPLETE
+    <h1 class="text-4xl mb-3 font-black" style="font-family: 'Orbitron'; text-shadow: 0 0 12px gold;">
+      ROAST COMPLETE
     </h1>
 
-    <p class="text-center text-xl mb-2">Candidate: <span class="text-yellow-400">{{ name }}</span></p>
+    <p class="text-gray-300 mb-6">Candidate: {{ name }}</p>
 
-    <p class="text-center text-5xl font-extrabold text-yellow-500 mb-10">
-        {{ score }}/100
-    </p>
+    <div class="bg-gray-900/50 p-6 rounded-xl border border-gray-800 mb-6">
+      <p class="text-2xl font-bold text-yellow-300 mb-2">{{ score }}/100</p>
 
-    <!-- ONE LINE -->
-    <div class="bg-gray-900/60 p-6 rounded-xl mb-8 shadow-lg border border-gray-700">
-        <h2 class="text-pink-400 text-xl mb-2">ONE-LINE ROAST</h2>
-        <p>{{ one_line }}</p>
+      <h3 class="text-lg font-semibold text-red-400 mb-1">ONE-LINE ROAST</h3>
+      <p class="mb-5">{{ one_line }}</p>
+
+      <h3 class="text-lg font-semibold text-yellow-400 mb-1">OVERVIEW</h3>
+      <p class="mb-5">{{ overview }}</p>
+
+      <h3 class="text-lg font-semibold text-blue-300 mb-1">FUN OBSERVATION</h3>
+      <p>{{ fun_obs }}</p>
     </div>
 
-    <!-- OVERVIEW -->
-    <div class="bg-gray-900/60 p-6 rounded-xl mb-8 shadow-lg border border-gray-700">
-        <h2 class="text-green-400 text-xl mb-2">OVERVIEW</h2>
-        <p>{{ overview }}</p>
+    <div class="flex justify-between mt-8">
+      <a href="/" class="underline hover:text-yellow-300">← Roast another</a>
+      <a href="/leaderboard" class="underline hover:text-yellow-300">View Leaderboard →</a>
     </div>
 
-    <!-- FUN OBS -->
-    <div class="bg-gray-900/60 p-6 rounded-xl mb-8 shadow-lg border border-gray-700">
-        <h2 class="text-yellow-300 text-xl mb-2">FUN OBSERVATION</h2>
-        <p>{{ fun_obs }}</p>
-    </div>
+  </main>
 
-    <div class="flex justify-center gap-6 mt-10">
-        <a href="/" class="underline text-gray-300 hover:text-yellow-300">
-            ← Roast another
-        </a>
-        <a href="/leaderboard" class="underline text-gray-300 hover:text-yellow-300">
-            View Leaderboard →
-        </a>
-    </div>
-
-</div>
-
-<script>
-    window.onload = () => startStarfield();
-</script>
-
+  <script>window.onload = () => startStarfield();</script>
 </body>
 </html>

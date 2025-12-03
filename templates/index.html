@@ -1,156 +1,161 @@
 <!DOCTYPE html>
 <html lang="en" class="bg-black text-white overflow-x-hidden">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>RoastRank — CV Roast Engine</title>
+  <title>RoastRank — Galactic CV Roaster</title>
 
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Roboto+Mono:wght@300;400;600&display=swap" rel="stylesheet">
 
-    <!-- STARFIELD -->
-    <script src="/static/starfield.js"></script>
+  <script src="/static/starfield.js"></script>
 
-    <style>
-        body { font-family: 'Roboto Mono', monospace; }
-        #intro-text {
-            font-family: 'Orbitron', sans-serif;
-            opacity: 0;
-            animation: fadeIntro 4s ease forwards;
-            text-shadow: 0 0 12px rgba(255,255,255,0.7);
-        }
-        @keyframes fadeIntro {
-            0% { opacity: 0; transform: translateY(20px); }
-            100% { opacity: 1; transform: translateY(0); }
-        }
+  <style>
+    body { font-family: 'Roboto Mono', monospace; overflow-x: hidden; }
 
-        .mode-btn {
-            transition: 0.25s ease;
-            padding: 0.8rem 1.4rem;
-            border-radius: 0.8rem;
-            font-weight: 700;
-            border: 2px solid transparent;
-        }
-        .mode-btn.selected {
-            transform: scale(1.05);
-            border-color: gold;
-            box-shadow: 0 0 14px rgba(255,215,0,0.6);
-        }
+    #starfield {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+    }
 
-        .upload-zone {
-            margin-top: 2rem;
-            border: 2px dashed rgba(255,255,255,0.25);
-            padding: 2rem;
-            border-radius: 1rem;
-            text-align: center;
-            transition: 0.25s ease;
-        }
-        .upload-zone:hover {
-            border-color: gold;
-            background: rgba(255,255,255,0.08);
-            transform: translateY(-2px);
-        }
+    #intro {
+      font-family: 'Orbitron', sans-serif;
+      opacity: 0;
+      animation: fadeIn 2.8s ease-out forwards;
+      text-shadow: 0 0 16px rgba(255,255,255,0.7);
+    }
 
-        .spinner {
-            border: 4px solid rgba(255,255,255,0.2);
-            border-top: 4px solid gold;
-            border-radius: 50%;
-            width: 36px;
-            height: 36px;
-            animation: spin 0.9s linear infinite;
-            margin: auto;
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-    </style>
+    @keyframes fadeIn {
+      0% { opacity: 0; transform: translateY(20px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    .mode-btn {
+      transition: 0.25s ease;
+      padding: 0.7rem 1.3rem;
+      border-radius: 0.7rem;
+      border: 2px solid transparent;
+      font-weight: 700;
+    }
+
+    .mode-btn.selected {
+      transform: scale(1.05);
+      border-color: gold;
+      box-shadow: 0 0 12px rgba(255,215,0,0.55);
+    }
+
+    .upload-area {
+      border: 2px dashed rgba(255,255,255,0.25);
+      padding: 2rem;
+      border-radius: 1rem;
+      cursor: pointer;
+      transition: 0.25s;
+      text-align: center;
+    }
+
+    .upload-area:hover {
+      border-color: gold;
+      background: rgba(255,255,255,0.07);
+      transform: translateY(-2px);
+    }
+
+    .spinner {
+      border: 4px solid rgba(255,255,255,0.15);
+      border-top: 4px solid gold;
+      border-radius: 50%;
+      width: 34px;
+      height: 34px;
+      animation: spin 0.7s linear infinite;
+      margin: auto;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
 </head>
 
 <body class="relative min-h-screen flex flex-col items-center">
 
-<!-- STARFIELD BG -->
-<canvas id="starfield"></canvas>
+  <canvas id="starfield"></canvas>
 
-<main class="relative z-10 w-full max-w-2xl px-6 pt-20 pb-32">
+  <main class="relative z-10 w-full max-w-2xl mx-auto px-6 pt-24 pb-20 text-center">
 
-    <h2 id="intro-text" class="text-center text-xl opacity-80 mb-8">
-        From a galaxy far, far away… your CV awaits judgement.
-    </h2>
+    <p id="intro" class="text-lg mb-6 opacity-80">
+      From a galaxy far, far away… your CV awaits judgment.
+    </p>
 
-    <h1 class="text-center text-6xl sm:text-7xl font-black mb-6"
-        style="font-family: 'Orbitron', sans-serif; text-shadow: 0 0 18px gold;">
-        ROASTRANK
+    <h1 class="text-5xl sm:text-6xl font-black mb-4"
+        style="font-family: 'Orbitron', sans-serif; text-shadow: 0 0 14px gold;">
+      ROASTRANK
     </h1>
 
-    <p class="text-center text-gray-300 mb-10">
-        Upload your CV. Face the council. Survive… if you can.
-    </p>
+    <p class="text-gray-300 mb-10">Upload your CV. Face the council. Survive if you can.</p>
 
-    <!-- MODE BUTTONS -->
+    <!-- Mode selector -->
     <div class="flex justify-center gap-4 mb-6">
-        <button id="quickBtn" class="mode-btn bg-yellow-600 text-black selected"
-                onclick="setMode('quick')">
-            ⚡ Quick Roast
-        </button>
-
-        <button id="fullBtn" class="mode-btn bg-red-700"
-                onclick="setMode('full')">
-            🔥 Full Roast
-        </button>
+      <button id="quickBtn" class="mode-btn selected bg-yellow-600 text-black" onclick="setMode('quick')">
+        ⚡ Quick Roast
+      </button>
+      <button id="fullBtn" class="mode-btn bg-red-700" onclick="setMode('full')">
+        🔥 Full Roast
+      </button>
     </div>
 
-    <p id="modeWarning" class="text-center text-yellow-400 text-sm mb-6">
-        ⚡ Fast, brutal and to the point.
+    <p id="modeWarning" class="text-sm text-yellow-400 mb-6">
+      Fast, punchy and brutal.
     </p>
 
-    <!-- UPLOAD -->
+    <!-- Upload form -->
     <form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
-        <input type="hidden" name="mode" id="modeInput" value="quick" />
+      <input type="hidden" id="modeInput" name="mode" value="quick">
 
-        <label class="upload-zone cursor-pointer">
-            <p class="mb-3 text-gray-300">Click to upload your resume</p>
-            <p class="text-xs text-gray-500">Supports PDF, DOCX, DOC, TXT</p>
-            <input type="file" name="file" accept=".pdf,.docx,.doc,.txt" class="hidden" onchange="submitForm()" />
-        </label>
+      <label class="upload-area">
+        <p class="mb-3 text-gray-200">Click to upload your resume</p>
+        <p class="text-xs text-gray-400">PDF, DOCX, TXT</p>
+        <input type="file" name="file" accept=".pdf,.docx,.txt" class="hidden" onchange="submitForm()">
+      </label>
 
-        <div id="loadingSection" class="hidden mt-6 text-center">
-            <div class="spinner mb-3"></div>
-            <p class="text-gray-300 text-sm">Processing your CV… brace yourself.</p>
-        </div>
+      <div id="loading" class="hidden mt-5">
+        <div class="spinner mb-2"></div>
+        <p class="text-sm text-gray-300">Processing your CV...</p>
+      </div>
     </form>
 
-    <div class="text-center mt-10">
-        <a href="/leaderboard" class="underline text-gray-300 hover:text-yellow-300">
-            View Leaderboard →
-        </a>
+    <div class="mt-10">
+      <a href="/leaderboard" class="underline text-gray-300 hover:text-yellow-300">
+        View Leaderboard →
+      </a>
     </div>
 
-</main>
+  </main>
 
-<script>
+  <script>
     function setMode(mode) {
-        document.getElementById("modeInput").value = mode;
-
-        quickBtn.classList.remove("selected");
-        fullBtn.classList.remove("selected");
-
-        if (mode === "quick") {
-            quickBtn.classList.add("selected");
-            modeWarning.innerText = "⚡ Fast, brutal and to the point.";
-        } else {
-            fullBtn.classList.add("selected");
-            modeWarning.innerText = "🔥 Full roast: denser, funnier, harsher.";
-        }
+      document.getElementById("modeInput").value = mode;
+      quickBtn.classList.remove("selected");
+      fullBtn.classList.remove("selected");
+      if (mode === "quick") {
+        quickBtn.classList.add("selected");
+        modeWarning.innerText = "Fast, punchy and brutal.";
+      } else {
+        fullBtn.classList.add("selected");
+        modeWarning.innerText = "Full roast: deeper, funnier, more painful.";
+      }
     }
 
     function submitForm() {
-        document.getElementById("loadingSection").classList.remove("hidden");
-        document.getElementById("uploadForm").submit();
+      document.getElementById("loading").classList.remove("hidden");
+      document.getElementById("uploadForm").submit();
     }
 
     window.onload = () => startStarfield();
-</script>
+  </script>
 
 </body>
 </html>

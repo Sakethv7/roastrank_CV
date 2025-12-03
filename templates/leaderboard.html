@@ -1,59 +1,55 @@
 <!DOCTYPE html>
 <html lang="en" class="bg-black text-white">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Leaderboard</title>
+  <meta charset="UTF-8">
+  <title>Leaderboard</title>
 
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="/static/starfield.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;900&display=swap" rel="stylesheet">
 
-    <style>
-        body { font-family: 'Roboto Mono', monospace; }
-    </style>
+  <script src="/static/starfield.js"></script>
+
+  <style>
+    body { font-family: 'Roboto Mono', monospace; }
+    #starfield {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+    }
+  </style>
 </head>
 
-<body class="relative min-h-screen">
+<body>
+  <canvas id="starfield"></canvas>
 
-<canvas id="starfield"></canvas>
+  <main class="relative z-10 max-w-3xl mx-auto px-6 pt-20 pb-28">
 
-<div class="relative z-10 max-w-3xl mx-auto px-6 py-20">
-
-    <h1 class="text-center text-5xl font-bold mb-10"
-        style="font-family: 'Orbitron'; text-shadow: 0 0 16px gold;">
-        LEADERBOARD
+    <h1 class="text-5xl font-black mb-10 text-center"
+        style="font-family: 'Orbitron'; text-shadow: 0 0 14px gold;">
+      LEADERBOARD
     </h1>
 
-    {% if roasts %}
-        <div class="space-y-6">
-            {% for r in roasts %}
-            <div class="bg-gray-900/50 p-5 rounded-xl border border-gray-700 shadow-md">
-                <div class="flex justify-between">
-                    <p class="font-bold text-yellow-300">{{ r[0] }}</p>
-                    <p class="text-yellow-500 font-bold">{{ r[1] }}/100</p>
-                </div>
-
-                <p class="text-gray-300 mt-2">“{{ r[2] }}”</p>
-
-                <p class="text-xs text-gray-500 mt-2">
-                    {{ r[3] }}
-                </p>
-            </div>
-            {% endfor %}
+    <div class="space-y-6">
+      {% for r in roasts %}
+      <div class="bg-gray-900/50 p-5 rounded-lg border border-gray-800">
+        <div class="flex justify-between">
+          <p class="font-bold text-yellow-300 text-lg">{{ r[1] }}/100</p>
+          <p class="text-gray-400 text-sm">{{ r[3] }}</p>
         </div>
-    {% else %}
-        <p class="text-center text-gray-400">No roasts yet.</p>
-    {% endif %}
-
-    <div class="text-center mt-10">
-        <a href="/" class="underline text-gray-300 hover:text-yellow-300">← Back Home</a>
+        <p class="text-white text-lg font-semibold">{{ r[0] }}</p>
+        <p class="text-gray-300 mt-1">{{ r[2] }}</p>
+      </div>
+      {% endfor %}
     </div>
 
-</div>
+    <div class="mt-10 text-center">
+      <a href="/" class="underline hover:text-yellow-300">← Back home</a>
+    </div>
 
-<script>
-    window.onload = () => startStarfield();
-</script>
+  </main>
 
+  <script>window.onload = () => startStarfield();</script>
 </body>
 </html>
