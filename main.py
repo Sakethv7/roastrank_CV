@@ -46,19 +46,37 @@ CREATE TABLE IF NOT EXISTS roasts (
 conn.commit()
 
 # ============================================================
-# TEXT EXTRACTION (PDF / DOCX / DOC / TXT)
+# FILE TEXT EXTRACTION (PDF / DOCX / DOC / TXT)
 # ============================================================
 
 def extract_text_from_file(file: UploadFile) -> str:
     ext = file.filename.lower()
     raw_bytes = file.file.read()
 
-    # --- PDF ---
+    # --------------------------------------------------------
+    # PDF (RELIABLE using poppler-utils pdftotext)
+    # --------------------------------------------------------
     if ext.endswith(".pdf"):
-        reader = PyPDF2.PdfReader(io.BytesIO(raw_bytes))
-        return "\n".join((page.extract_text() or "") for page in reader.pages)
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+            tmp.write(raw_bytes)
+            tmp_path = tmp.name
 
-    # --- DOCX (must write to real file) ---
+        try:
+            text = subprocess.check_output(
+                ["pdftotext", tmp_path, "-"],
+                text=True,
+                stderr=subprocess.DEVNULL
+            )
+        except Exception:
+            text = ""
+        finally:
+            os.remove(tmp_path)
+
+        return text.strip()
+
+    # --------------------------------------------------------
+    # DOCX (python-docx requires temp file)
+    # --------------------------------------------------------
     if ext.endswith(".docx"):
         with tempfile.NamedTemporaryFile(delete=False, suffix=".docx") as tmp:
             tmp.write(raw_bytes)
@@ -72,35 +90,42 @@ def extract_text_from_file(file: UploadFile) -> str:
 
         return text
 
-    # --- DOC (requires antiword, optional) ---
+    # --------------------------------------------------------
+    # DOC (requires antiword, if available)
+    # --------------------------------------------------------
     if ext.endswith(".doc"):
         with tempfile.NamedTemporaryFile(delete=False, suffix=".doc") as tmp:
             tmp.write(raw_bytes)
             tmp_path = tmp.name
 
         try:
-            output = subprocess.check_output(["antiword", tmp_path], text=True)
-        except:
-            output = "Document format not supported."
+            text = subprocess.check_output(
+                ["antiword", tmp_path],
+                text=True,
+                stderr=subprocess.DEVNULL
+            )
+        except Exception:
+            text = ""
         finally:
             os.remove(tmp_path)
 
-        return output
+        return text
 
-    # --- TXT ---
+    # --------------------------------------------------------
+    # TXT fallback
+    # --------------------------------------------------------
     return raw_bytes.decode(errors="ignore")
 
 
 # ============================================================
-# NAME DETECTION (simple but effective)
+# NAME DETECTION
 # ============================================================
 def guess_name(text: str) -> str:
-    candidates = text.split("\n")[:5]
+    lines = text.split("\n")[:5]
 
-    for line in candidates:
+    for line in lines:
         cleaned = line.strip()
         if 2 <= len(cleaned.split()) <= 4:
-            # ensure mostly letters + spaces
             if all(c.isalpha() or c == " " for c in cleaned):
                 return cleaned
 
@@ -108,13 +133,12 @@ def guess_name(text: str) -> str:
 
 
 # ============================================================
-# JSON CLEANING
+# SAFE JSON PARSING
 # ============================================================
 def safe_json_extract(model_output: str):
     try:
         return json.loads(model_output)
-    except:
-        # fallback
+    except Exception:
         return {
             "one_line": "Your CV confused the AI.",
             "overview": "Model failed JSON parsing.",
@@ -129,7 +153,7 @@ def safe_json_extract(model_output: str):
 def roast_resume(text: str, mode: str):
     if mode == "quick":
         prompt = f"""
-You are RoastRank — a short and punchy roast generator.
+You are RoastRank, the funniest short-roast generator.
 
 Return ONLY JSON with keys:
 one_line
@@ -138,17 +162,17 @@ fun_obs
 score
 
 Rules:
-- one_line: must be a roast.
-- overview: factual but funny (2 lines max)
+- one_line: must be a roast, short.
+- overview: factual but funny, max 2 lines.
 - fun_obs: 1 funny observation.
-- score: integer between 1–100.
+- score: integer 1–100.
 
 Resume:
 {text}
 """
     else:
         prompt = f"""
-You are RoastRank — the galactic lord of resume roasting.
+You are RoastRank, galactic emperor of resume roasting.
 
 Return ONLY JSON with keys:
 one_line
@@ -157,10 +181,10 @@ fun_obs
 score
 
 Rules:
-- one_line: must be savage & short.
-- overview: 2–3 lines max. Funny but true.
+- one_line: savage, short.
+- overview: 2–3 lines max, funny, sarcastic, accurate.
 - fun_obs: 1 punchline.
-- score: integer between 1–100.
+- score: integer 1–100.
 
 Resume:
 {text}
@@ -174,7 +198,7 @@ Resume:
     try:
         raw = res.output[0].content[0].text
         return safe_json_extract(raw)
-    except:
+    except Exception:
         return {
             "one_line": "AI malfunction: roast overload.",
             "overview": "",
@@ -194,16 +218,10 @@ async def home(request: Request):
 
 @app.post("/upload", response_class=HTMLResponse)
 async def upload(request: Request, file: UploadFile, mode: str = Form(...)):
-    # Extract text
     text = extract_text_from_file(file)
-
-    # Extract name
     name = guess_name(text)
-
-    # Generate roast
     roast = roast_resume(text, mode)
 
-    # Save
     cursor.execute("""
         INSERT INTO roasts (name, score, one_line, overview, fun_obs, created_at)
         VALUES (?, ?, ?, ?, ?, ?)
@@ -237,10 +255,10 @@ async def leaderboard(request: Request):
     """)
     rows = cursor.fetchall()
 
-    return templates.TemplateResponse(
-        "leaderboard.html",
-        {"request": request, "roasts": rows}
-    )
+    return templates.TemplateResponse("leaderboard.html", {
+        "request": request,
+        "roasts": rows
+    })
 
 
 # ============================================================
