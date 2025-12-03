@@ -1,6 +1,11 @@
 import os
+import io
+import json
 import sqlite3
+import tempfile
+import subprocess
 from datetime import datetime
+
 from fastapi import FastAPI, Request, UploadFile, Form
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -10,9 +15,9 @@ from openai import OpenAI
 import PyPDF2
 from docx import Document
 
-# ----------------------------------------------------
-# FASTAPI SETUP
-# ----------------------------------------------------
+# ============================================================
+# FASTAPI APP INIT
+# ============================================================
 app = FastAPI()
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -20,9 +25,9 @@ templates = Jinja2Templates(directory="templates")
 
 client = OpenAI()
 
-# ----------------------------------------------------
-# DATABASE
-# ----------------------------------------------------
+# ============================================================
+# DATABASE INIT
+# ============================================================
 DB_PATH = "roasts.db"
 conn = sqlite3.connect(DB_PATH, check_same_thread=False)
 cursor = conn.cursor()
@@ -40,76 +45,122 @@ CREATE TABLE IF NOT EXISTS roasts (
 """)
 conn.commit()
 
-# ----------------------------------------------------
-# FILE HANDLERS
-# ----------------------------------------------------
+# ============================================================
+# TEXT EXTRACTION (PDF / DOCX / DOC / TXT)
+# ============================================================
+
 def extract_text_from_file(file: UploadFile) -> str:
     ext = file.filename.lower()
+    raw_bytes = file.file.read()
 
+    # --- PDF ---
     if ext.endswith(".pdf"):
-        reader = PyPDF2.PdfReader(file.file)
-        text = ""
-        for page in reader.pages:
-            t = page.extract_text()
-            if t:
-                text += t + "\n"
+        reader = PyPDF2.PdfReader(io.BytesIO(raw_bytes))
+        return "\n".join((page.extract_text() or "") for page in reader.pages)
+
+    # --- DOCX (must write to real file) ---
+    if ext.endswith(".docx"):
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".docx") as tmp:
+            tmp.write(raw_bytes)
+            tmp_path = tmp.name
+
+        try:
+            doc = Document(tmp_path)
+            text = "\n".join(p.text for p in doc.paragraphs)
+        finally:
+            os.remove(tmp_path)
+
         return text
 
-    elif ext.endswith(".docx"):
-        doc = Document(file.file)
-        text = "\n".join(p.text for p in doc.paragraphs)
-        return text
+    # --- DOC (requires antiword, optional) ---
+    if ext.endswith(".doc"):
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".doc") as tmp:
+            tmp.write(raw_bytes)
+            tmp_path = tmp.name
 
-    else:
-        return file.file.read().decode("utf-8", errors="ignore")
+        try:
+            output = subprocess.check_output(["antiword", tmp_path], text=True)
+        except:
+            output = "Document format not supported."
+        finally:
+            os.remove(tmp_path)
+
+        return output
+
+    # --- TXT ---
+    return raw_bytes.decode(errors="ignore")
 
 
-# ----------------------------------------------------
-# NAME DETECTION
-# ----------------------------------------------------
+# ============================================================
+# NAME DETECTION (simple but effective)
+# ============================================================
 def guess_name(text: str) -> str:
-    lines = text.split("\n")
-    for line in lines[:5]:
-        clean = line.strip()
-        if 2 <= len(clean.split()) <= 4:
-            return clean
+    candidates = text.split("\n")[:5]
+
+    for line in candidates:
+        cleaned = line.strip()
+        if 2 <= len(cleaned.split()) <= 4:
+            # ensure mostly letters + spaces
+            if all(c.isalpha() or c == " " for c in cleaned):
+                return cleaned
+
     return "Anonymous"
 
 
-# ----------------------------------------------------
-# ROASTING ENGINE
-# ----------------------------------------------------
+# ============================================================
+# JSON CLEANING
+# ============================================================
+def safe_json_extract(model_output: str):
+    try:
+        return json.loads(model_output)
+    except:
+        # fallback
+        return {
+            "one_line": "Your CV confused the AI.",
+            "overview": "Model failed JSON parsing.",
+            "fun_obs": "",
+            "score": 1
+        }
+
+
+# ============================================================
+# ROAST GENERATION
+# ============================================================
 def roast_resume(text: str, mode: str):
     if mode == "quick":
-        PROMPT = f"""
-You are RoastRank — a savage and funny résumé roasting AI.
+        prompt = f"""
+You are RoastRank — a short and punchy roast generator.
 
-Return ONLY JSON with:
-one_line
-overview
-fun_obs
-score
-
-Keep it short, sharp, and funny.
-
-Resume:
-{text}
-"""
-    else:
-        PROMPT = f"""
-You are RoastRank — the meanest resume critic in the galaxy.
-
-Return ONLY JSON with:
+Return ONLY JSON with keys:
 one_line
 overview
 fun_obs
 score
 
 Rules:
-- Make the roast tight and mean (NOT paragraphs)
-- Overview should be factual BUT funny
-- Fun observation must be sharp and witty
-- Score between 1 and 100
+- one_line: must be a roast.
+- overview: factual but funny (2 lines max)
+- fun_obs: 1 funny observation.
+- score: integer between 1–100.
+
+Resume:
+{text}
+"""
+    else:
+        prompt = f"""
+You are RoastRank — the galactic lord of resume roasting.
+
+Return ONLY JSON with keys:
+one_line
+overview
+fun_obs
+score
+
+Rules:
+- one_line: must be savage & short.
+- overview: 2–3 lines max. Funny but true.
+- fun_obs: 1 punchline.
+- score: integer between 1–100.
 
 Resume:
 {text}
@@ -117,25 +168,25 @@ Resume:
 
     res = client.responses.create(
         model="gpt-4.1-mini",
-        input=PROMPT
+        input=prompt
     )
 
     try:
-        import json
         raw = res.output[0].content[0].text
-        return json.loads(raw)
-    except Exception:
+        return safe_json_extract(raw)
+    except:
         return {
-            "one_line": "Your CV confused the AI.",
-            "overview": "Model failed to understand your resume.",
-            "fun_obs": "Even robots have limits.",
+            "one_line": "AI malfunction: roast overload.",
+            "overview": "",
+            "fun_obs": "",
             "score": 1
         }
 
 
-# ----------------------------------------------------
+# ============================================================
 # ROUTES
-# ----------------------------------------------------
+# ============================================================
+
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
@@ -143,10 +194,16 @@ async def home(request: Request):
 
 @app.post("/upload", response_class=HTMLResponse)
 async def upload(request: Request, file: UploadFile, mode: str = Form(...)):
+    # Extract text
     text = extract_text_from_file(file)
+
+    # Extract name
     name = guess_name(text)
+
+    # Generate roast
     roast = roast_resume(text, mode)
 
+    # Save
     cursor.execute("""
         INSERT INTO roasts (name, score, one_line, overview, fun_obs, created_at)
         VALUES (?, ?, ?, ?, ?, ?)
@@ -180,15 +237,15 @@ async def leaderboard(request: Request):
     """)
     rows = cursor.fetchall()
 
-    return templates.TemplateResponse("leaderboard.html", {
-        "request": request,
-        "roasts": rows
-    })
+    return templates.TemplateResponse(
+        "leaderboard.html",
+        {"request": request, "roasts": rows}
+    )
 
 
-# ----------------------------------------------------
-# LOCAL RUN MODE
-# ----------------------------------------------------
+# ============================================================
+# RUN LOCALLY
+# ============================================================
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=7860)
