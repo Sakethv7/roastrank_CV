@@ -113,13 +113,30 @@ def extract_text(file: UploadFile) -> str:
 # -------------------------------------------------------
 def guess_name(text):
     """Try to extract candidate name from first few lines"""
-    lines = text.split("\n")[:5]
+    lines = text.split("\n")[:10]
     for line in lines:
         line = line.strip()
+        # Look for name patterns
         if 2 <= len(line.split()) <= 4:
-            if all(c.isalpha() or c.isspace() for c in line):
-                return line
+            if all(c.isalpha() or c.isspace() or c in "'-." for c in line):
+                # Skip common header words
+                if not any(word.lower() in line.lower() for word in 
+                          ["resume", "cv", "curriculum", "vitae", "contact", "email", "phone"]):
+                    return line
     return "Anonymous"
+
+
+def check_duplicate(name, text_sample):
+    """Check if this resume was already submitted"""
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    # Check by name first
+    cursor.execute("SELECT COUNT(*) FROM roasts WHERE name = ?", (name,))
+    count = cursor.fetchone()[0]
+    conn.close()
+    
+    return count > 0
 
 
 # -------------------------------------------------------
@@ -229,6 +246,14 @@ async def upload(request: Request, file: UploadFile, mode: str = Form(...)):
     """Handle resume upload and generate roast"""
     text = extract_text(file)
     name = guess_name(text)
+    
+    # Check for duplicate submission
+    if check_duplicate(name, text[:500]):
+        return templates.TemplateResponse("duplicate.html", {
+            "request": request,
+            "name": name
+        })
+    
     roast = roast_resume(text, mode)
 
     # Save to database

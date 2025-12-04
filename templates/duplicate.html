@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Already Roasted - RoastRank</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            padding: 60px 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 600px;
+            text-align: center;
+        }
+        h1 { 
+            font-size: 3em; 
+            margin-bottom: 20px;
+            color: #ff6b6b;
+        }
+        h2 {
+            font-size: 1.8em;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        p {
+            font-size: 1.2em;
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+        .name {
+            color: #764ba2;
+            font-weight: bold;
+        }
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        a {
+            padding: 15px 30px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+            font-size: 1.1em;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+        .btn-secondary {
+            background: white;
+            color: #764ba2;
+            border: 2px solid #764ba2;
+        }
+        .btn-secondary:hover {
+            background: #764ba2;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚫</h1>
+        <h2>Nice Try, <span class="name">{{ name }}</span>!</h2>
+        <p>
+            We've already roasted this resume. You can't escape the burn that easily!<br><br>
+            If you've updated your resume and want a fresh roast, please mention it in the filename 
+            (e.g., "Resume_v2.pdf" or "Updated_Resume.pdf").
+        </p>
+        <div class="button-group">
+            <a href="/" class="btn-primary">Upload a Different Resume</a>
+            <a href="/leaderboard" class="btn-secondary">View Leaderboard</a>
+        </div>
+    </div>
+</body>
+</html>
