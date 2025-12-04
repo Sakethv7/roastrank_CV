@@ -8,149 +8,265 @@ app_file: main.py
 pinned: false
 ---
 
-# RoastRank
-## Overview
+# 🔥 RoastRank
 
-RoastRank is an AI-powered resume roasting engine with a cinematic Star-Wars-inspired interface.
-Upload your CV and receive sharp, compact, and brutally funny AI roasts powered by OpenAI.
+<div align="center">
 
-## Features
-Resume Roasting
+**The Brutal AI Resume Roasting Engine**
 
-    Quick Roast: fast, punchy one-liner + fun observation
+[![Hugging Face Spaces](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Spaces-blue)](https://huggingface.co/spaces/Wanderingcoder/RoastRank)
+[![Python](https://img.shields.io/badge/Python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-green.svg)](https://fastapi.tiangolo.com/)
+[![OpenAI](https://img.shields.io/badge/OpenAI-GPT--4o--mini-412991.svg)](https://openai.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-    Full Roast: one-liner, overview, detailed roast, fun observation
+*Upload your resume. Get roasted by AI. Cry a little. Fix it. Repeat.*
 
-    Consistent scoring across roast modes
+[🚀 Try it Live](https://huggingface.co/spaces/Wanderingcoder/RoastRank) • [📖 Documentation](#features) • [🐛 Report Bug](https://github.com/Wanderingcoder/RoastRank/issues)
 
-    Star Wars-Inspired UI
+</div>
 
-    Cinematic intro text scroll
+---
 
-    Animated starfield background
+## 🎭 What is RoastRank?
 
-    Neon cyber-sci-fi interface
+RoastRank is a **savage standup comedian in AI form** that roasts tech resumes with surgical precision. Think *The Tech Roast Show* meets Silicon Valley. Upload your CV and receive brutally honest, hilariously specific feedback powered by OpenAI's GPT-4o-mini.
 
-## Supported File Types
+### Why RoastRank?
 
-    PDF
+- ❌ **No more generic feedback** like "good resume" or "needs work"
+- ✅ **Specific, actionable roasts** that reference YOUR actual content
+- 🎤 **Standup comedy style** - witty, dark humor with perfect timing
+- 📊 **Fair scoring (1-100)** - uses the full range, not just 45-55
+- 🏆 **Public leaderboard** - see how you stack up against others
 
-    DOCX
+---
 
-    TXT
+## ✨ Features
 
-## Leaderboard
+### 🎯 AI Roasting Modes
 
-    Displays top 50 roasted candidates
+**Quick Roast** - Fast, punchy one-liner + fun observation  
+**Full Roast** - One-liner, overview, detailed analysis, and killer punchline
 
-    Auto-extracts candidate names from resumes
+### 🎨 Star Wars-Inspired UI
 
-## Database
+- 🌟 Cinematic intro text scroll
+- ✨ Animated starfield background  
+- 🎨 Neon cyber-sci-fi interface
+- 🎬 Smooth animations and transitions
 
-    SQLite storage for all roast entries
+### 📄 Supported File Types
 
-Auto-creates tables on launch
+- **PDF** - Extracts text from all pages
+- **DOCX** - Parses Word documents
+- **TXT** - Plain text resumes
 
-## Tech Stack
-    Backend
+### 🏆 Features
 
-    Python
+- 🔥 **Top 50 leaderboard** - See the best (and worst) resumes
+- 🤖 **Auto name extraction** - Pulls candidate names from resumes
+- 🚫 **Duplicate detection** - Prevents spam submissions
+- 💾 **SQLite storage** - Persistent roast history
 
-    FastAPI
+---
 
-    SQLite
+## 🛠️ Tech Stack
 
-    AI Model
+| Category | Technology |
+|----------|------------|
+| **Backend** | Python, FastAPI, SQLite |
+| **AI Model** | OpenAI GPT-4o-mini |
+| **Frontend** | TailwindCSS, Jinja2, Canvas API |
+| **Deployment** | Docker, Hugging Face Spaces |
 
-    OpenAI GPT-4.1-mini
+---
 
-    Frontend
+## 📁 Project Structure
 
-    TailwindCSS
+```
+roastrank/
+├── main.py                 # FastAPI application
+├── requirements.txt        # Python dependencies
+├── Dockerfile             # Container configuration
+├── README.md              # You are here
+├── .env                   # Environment variables (not in git)
+├── static/
+│   ├── starfield.js       # Canvas animation
+│   └── style.css          # Custom styles
+└── templates/
+    ├── index.html         # Landing page
+    ├── result.html        # Roast results
+    ├── duplicate.html     # Duplicate detection page
+    └── leaderboard.html   # Top roasts
+```
 
-    Jinja2 Templates
+---
 
-    Canvas-based starfield animation
+## 🚀 Local Setup
 
-    Deployment
+### 1. Clone the Repository
 
-    Docker
+```bash
+git clone https://huggingface.co/spaces/Wanderingcoder/RoastRank
+cd RoastRank
+```
 
-    Hugging Face Spaces
+### 2. Create Virtual Environment
 
-## Project Structure
-    roastrank/
-    │── main.py
-    │── requirements.txt
-    │── Dockerfile
-    │── README.md
-    │── .env
-    │── static/
-    │     ├── starfield.js
-    │     └── style.css
-    │── templates/
-    │     ├── index.html
-    │     ├── result.html
-    │     └── leaderboard.html
-
-## Local Setup
-1. Clone the Repository
-git clone https://github.com/<your-username>/roastrank
-cd roastrank
-
-2. Create a Virtual Environment
+```bash
 python3 -m venv .venv
-source .venv/bin/activate
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+```
 
-3. Install Dependencies
+### 3. Install Dependencies
+
+```bash
 pip install -r requirements.txt
+```
 
-4. Add Environment Variables
+### 4. Configure Environment
 
-Create a .env file:
+Create a `.env` file in the root directory:
 
-OPENAI_API_KEY=your_key_here
+```env
+OPENAI_API_KEY=your_openai_api_key_here
+```
 
-5. Run the Application
-uvicorn main:app --reload --port 7860
+Get your API key from [OpenAI Platform](https://platform.openai.com/api-keys)
 
-6. Open in Browser
-http://localhost:7860
+### 5. Run the Application
 
-## Deployment on Hugging Face Spaces
-    Add Space Secret
+```bash
+python main.py
+```
 
-    In Settings → Variables → New Variable:
+Or with uvicorn directly:
 
-    OPENAI_API_KEY
+```bash
+uvicorn main:app --reload --host 0.0.0.0 --port 7860
+```
 
-    Deploy
+### 6. Open in Browser
 
-    Hugging Face automatically builds and deploys the Docker app.
+Navigate to [http://localhost:7860](http://localhost:7860)
 
-    API Routes
-    GET /
+---
 
-    Landing page
+## 🐳 Docker Deployment
 
-    POST /upload
+### Build and Run Locally
 
-    Upload and process the CV
+```bash
+docker build -t roastrank .
+docker run -p 7860:7860 -e OPENAI_API_KEY=your_key_here roastrank
+```
 
-    GET /leaderboard
+---
 
-    View top roasted candidates
+## ☁️ Hugging Face Spaces Deployment
 
-## License
+### 1. Create a New Space
 
-MIT License
+1. Go to [Hugging Face Spaces](https://huggingface.co/spaces)
+2. Click **Create new Space**
+3. Choose **Docker** as SDK
+4. Name it `RoastRank`
 
-### If you want, I can also add:
+### 2. Add Secret
 
-    GitHub badges
+1. Go to **Settings** → **Variables and secrets**
+2. Add a new secret:
+   - **Name:** `OPENAI_API_KEY`
+   - **Value:** Your OpenAI API key
 
-    Screenshot previews
+### 3. Push Code
 
-    Demo GIF
+```bash
+git remote add origin https://huggingface.co/spaces/YOUR_USERNAME/RoastRank
+git add .
+git commit -m "Initial commit"
+git push origin main
+```
 
-A dark-themed banner
+Hugging Face will automatically build and deploy! 🎉
+
+---
+
+## 📡 API Routes
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/` | Landing page with upload form |
+| `POST` | `/upload` | Upload and process resume |
+| `GET` | `/leaderboard` | View top 50 roasted resumes |
+| `GET` | `/test-api` | Test OpenAI API connection |
+
+---
+
+## 🎨 Example Roasts
+
+> **Score: 23/100**  
+> "You listed 'Microsoft Office' as a technical skill in 2024. What's next, bragging about your ability to use a stapler?"
+
+> **Score: 67/100**  
+> "Three internships and zero full-time roles—you're basically a professional coffee fetcher with a LinkedIn premium subscription."
+
+> **Score: 89/100**  
+> "Finally, someone who knows the difference between 'led a team' and 'attended team meetings.' Hire this person before they realize they're too good for you."
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Here's how:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+---
+
+## 📝 To-Do / Roadmap
+
+- [ ] Add more roasting modes (corporate, academic, startup)
+- [ ] Export roast as PDF/image for sharing
+- [ ] User accounts and roast history
+- [ ] Compare two resumes side-by-side
+- [ ] Add resume improvement suggestions
+- [ ] Multi-language support
+
+---
+
+## 🐛 Known Issues
+
+- Name extraction may fail on heavily formatted resumes
+- Very large PDFs (50+ pages) may timeout
+- Duplicate detection is name-based only (not content-based)
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 🙏 Acknowledgments
+
+- **OpenAI** - For GPT-4o-mini API
+- **Hugging Face** - For free Spaces hosting
+- **FastAPI** - For the amazing web framework
+- **The Tech Community** - For having resumes worth roasting
+
+---
+
+<div align="center">
+
+**Made with 🔥 by [WanderingCoder](https://huggingface.co/Wanderingcoder)**
+
+If this roasted your resume (in a good way), give it a ⭐ on GitHub!
+
+</div>
