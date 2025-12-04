@@ -156,18 +156,39 @@ def roast_resume(text, mode):
     # Limit text to avoid token limits
     text_sample = text[:4000]
 
-    prompt = f"""You are RoastRank — a brutal resume roasting AI.
+    prompt = f"""You are RoastRank — the Gordon Ramsay of resume criticism. Your job is to deliver CREATIVE, SPECIFIC, and SAVAGE roasts.
 
-Analyze this resume and return ONLY valid JSON with exactly these keys:
-- one_line: A short, savage one-liner roast (max 15 words)
-- overview: Funny but factual criticism of the resume (2-3 sentences)
-- fun_obs: One punchline observation about the candidate
-- score: Integer from 1-100 representing resume quality (be brutally honest)
+CRITICAL RULES:
+1. NO GENERIC PHRASES like "bloated", "jargon", "buzzwords", "jumbled mess", "lacks clarity"
+2. BE HYPER-SPECIFIC - reference actual skills, job titles, projects, or patterns you see
+3. USE CREATIVE METAPHORS - compare to pop culture, historical events, specific objects
+4. VARY YOUR HUMOR - use sarcasm, absurdism, technical jokes, industry-specific burns
+5. MAKE IT MEMORABLE - each roast should be unique and quotable
 
-Mode: {mode}
+Analyze this resume and find THE MOST INTERESTING FLAW:
+- Did they list "proficient in Microsoft Word" in 2024?
+- Do they have 47 buzzwords but zero measurable achievements?
+- Is their job title longer than their actual responsibilities?
+- Did they "lead" 10 projects as a junior developer?
+- Are they a "rockstar ninja guru" instead of having actual skills?
+
+Resume Mode: {mode}
 
 Resume text:
 {text_sample}
+
+Return ONLY valid JSON:
+{{
+  "one_line": "A SPECIFIC, CREATIVE one-liner (reference something from THEIR resume)",
+  "overview": "2-3 sentences with CONCRETE observations (quote or reference specific things you see)",
+  "fun_obs": "A clever punchline with a CREATIVE comparison or metaphor",
+  "score": 1-100 (be harsh but fair: 1-30=disaster, 31-50=weak, 51-70=okay, 71-85=solid, 86-100=impressive)
+}}
+
+Examples of GOOD roasts:
+- "You listed Excel as a skill in 2024. What's next, bragging about your fax machine expertise?"
+- "Three internships and zero full-time roles - you're basically a professional coffee fetcher with a LinkedIn."
+- "Your resume claims you 'revolutionized' something at a company that shut down six months later."
 
 Return ONLY the JSON object, nothing else."""
 
@@ -175,11 +196,11 @@ Return ONLY the JSON object, nothing else."""
         res = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "You are RoastRank, a brutal resume critic. Return ONLY valid JSON with keys: one_line, overview, fun_obs, score"},
+                {"role": "system", "content": "You are RoastRank, the most savage and creative resume critic alive. Every roast must be unique, specific, and memorable. NO generic criticisms allowed."},
                 {"role": "user", "content": prompt}
             ],
-            temperature=0.8,
-            max_tokens=500,
+            temperature=1.0,  # Increased for more creativity
+            max_tokens=600,
             response_format={"type": "json_object"}
         )
         raw = res.choices[0].message.content
